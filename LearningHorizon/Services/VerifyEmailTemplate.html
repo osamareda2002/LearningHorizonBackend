@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Email Confirmation</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f2f2f2; margin: 0; padding: 20px;">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <tr>
+            <td align="center" bgcolor="#4CAF50" style="padding: 20px; color: #ffffff; font-size: 24px; font-weight: bold;">
+                Email Confirmation
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 30px; font-size: 16px; color: #333333;">
+                <p>Hello,</p>
+                <p>Thank you for registering with <strong>Learning Horizon</strong>! To complete your registration, please use the following OTP code:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <span style="display: inline-block; background-color: #f2f2f2; padding: 15px 30px; font-size: 28px; font-weight: bold; color: #4CAF50; border-radius: 8px;">
+                        {{OTP_CODE}}
+                    </span>
+                </div>
+                <p>Please enter this code in the verification field to confirm your email address.</p>
+                <p>If you did not sign up for this account, please ignore this email.</p>
+                <p>Thank you for using <strong>Learning Horizon</strong>!</p>
+            </td>
+        </tr>
+        <tr>
+            <td style="background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #999999;">
+                © 2024 Learning Horizon. All rights reserved.<br>
+                This is an automated message, please do not reply directly to this email.
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
