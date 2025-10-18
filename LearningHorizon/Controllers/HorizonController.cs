@@ -406,7 +406,7 @@ namespace LearningHorizon.Controllers
             {
                 title = dtoCourse.courseTitle,
                 creator = dtoCourse.courseCreator,
-                price = dtoCourse.coursePrice,
+                price = (decimal)dtoCourse.coursePrice,
                 path = folderPath,
                 imagePath = courseImagePath,
             };
@@ -429,15 +429,15 @@ namespace LearningHorizon.Controllers
 
         [HttpPost]
         [Route("UpdateCourse")]
-        public async Task<IActionResult> UpdateCourse(int id, [FromForm] DtoAddCourse dtoCourse)
+        public async Task<IActionResult> UpdateCourse([FromForm] DtoAddCourse dtoCourse)
         {
-            var course = await _courseRepository.GetByIdAsync(id);
+            var course = await _courseRepository.GetByIdAsync((int)dtoCourse.courseId);
             if (course == null)
                 return NotFound("No course with this id");
             
             if(dtoCourse.courseTitle!= null) course.title = dtoCourse.courseTitle;
             if(dtoCourse.courseCreator != null) course.creator = dtoCourse.courseCreator;
-            if(dtoCourse.coursePrice != null) course.price = dtoCourse.coursePrice;
+            if(dtoCourse.coursePrice != null) course.price = (decimal)dtoCourse.coursePrice;
             if(dtoCourse.courseImage != null)
             {
                 string currentDirectory = Directory.GetCurrentDirectory();
@@ -459,7 +459,7 @@ namespace LearningHorizon.Controllers
 
             await _courseRepository.UpdateAsync(course);
             var result = await _courseRepository.SelectCourseById(course.id);
-            return Ok(result);
+            return Ok(new { status = 200 , data = result });
         }
 
         [HttpPost]

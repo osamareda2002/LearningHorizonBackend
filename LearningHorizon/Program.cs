@@ -21,13 +21,19 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "https://localhost:4200", "https://learning-horizon.net")
+            policy.WithOrigins("http://localhost:4200", "https://localhost:4200", "https://learning-horizon.net", "https://learninghorizon.netlify.app", "https://learning-horizon-angular.vercel.app")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
 
         });
 });
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10737418240; // 10 GB
+});
+
 
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
