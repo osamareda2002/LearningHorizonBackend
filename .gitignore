@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
+# Ignore Media folder (all files inside)
+LearningHorizon/Media/
+
+# Ignore appsettings.json and secrets
+LearningHorizon/appsettings.json
+LearningHorizon/appsettings.Development.json

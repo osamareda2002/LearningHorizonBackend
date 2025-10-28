@@ -9,5 +9,6 @@ namespace LearningHorizon.Interfaces
         Task<DtoGetUser> GetUserById(int id);
         Task<DtoGetUser> EditUser(DtoUpdateUser dtoUser);
         Task AddPurchasedCourse(int courseId, int userId);
+        Task<List<User>> GetAllUsersIncluding();
     }
 }

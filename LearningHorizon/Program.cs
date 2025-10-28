@@ -31,7 +31,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 10737418240; // 10 GB
+    options.MultipartBodyLengthLimit = 10737418240L; // 10 GB
 });
 
 
@@ -78,12 +78,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 268435456; // 256 MB
+    options.MultipartBodyLengthLimit = 10737418240L; // 256 MB
 });
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 268435456; // 256 MB
+    options.Limits.MaxRequestBodySize = 10737418240L; // 256 MB
 });
 
 

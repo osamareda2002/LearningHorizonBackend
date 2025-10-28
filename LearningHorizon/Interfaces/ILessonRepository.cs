@@ -8,5 +8,6 @@ namespace LearningHorizon.Interfaces
         Task<DtoGetLesson> SelectLessonById(int id);
         Task<List<DtoGetLesson>> SelectAllLessons();
         Task<List<DtoGetLesson>> SelectLessonsByCourseId(int courseId);
+        Task RemoveCourseLessons(int courseId);
     }
 }

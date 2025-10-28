@@ -95,5 +95,14 @@ namespace LearningHorizon.Repositories
             await _context.SaveChangesAsync();
             return;
         }
+
+        public async Task<List<User>> GetAllUsersIncluding()
+        {
+            var users = await _context.Users.Include(x => x.CoursesShowed)
+                                           .Include(x => x.CoursesPurchased)
+                                           .Where(x => !x.isDeleted).ToListAsync();
+
+            return users;
+        }
     }
 }

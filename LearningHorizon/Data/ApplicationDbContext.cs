@@ -31,6 +31,14 @@ namespace LearningHorizon.Data
                 .HasMany(u => u.CoursesPurchased)
                 .WithMany(c => c.UsersPurchased)
                 .UsingEntity(j => j.ToTable("UserCoursesPurchased"));
+
+            modelBuilder.Entity<User>()
+                .Navigation(u => u.CoursesShowed)
+                .AutoInclude();
+
+            modelBuilder.Entity<User>()
+                .Navigation(u => u.CoursesPurchased)
+                .AutoInclude();
         }
 
 

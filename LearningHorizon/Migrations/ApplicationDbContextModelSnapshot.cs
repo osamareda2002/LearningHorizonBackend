@@ -143,6 +143,9 @@ namespace LearningHorizon.Migrations
                     b.Property<bool>("isFree")
                         .HasColumnType("bit");
 
+                    b.Property<int>("lessonOrder")
+                        .HasColumnType("int");
+
                     b.Property<string>("path")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

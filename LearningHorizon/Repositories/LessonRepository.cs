@@ -42,7 +42,10 @@ namespace LearningHorizon.Repositories
                     path = l.path,
                     isFree = l.isFree,
                     courseId = l.courseId,
-                    duration = l.duration ?? 0
+                    courseTitle = l.course.title,
+                    duration = l.duration ?? 0,
+                    durationInMinutes = (int)Math.Round(l.duration.Value / 60.0),
+                    arrange = l.lessonOrder,
                 }).ToListAsync();
             return lessons;
         }
@@ -59,6 +62,12 @@ namespace LearningHorizon.Repositories
                     duration = l.duration ?? 0
                 }).ToListAsync();
             return lessons;
+        }
+
+        public async Task RemoveCourseLessons(int courseId)
+        {
+            await _context.Lessons.Where(x => x.courseId == courseId)
+                                  .ExecuteUpdateAsync(x => x.SetProperty(l => l.isDeleted, true));
         }
     }
 }

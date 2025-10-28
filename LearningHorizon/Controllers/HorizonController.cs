@@ -462,7 +462,7 @@ namespace LearningHorizon.Controllers
             return Ok(new { status = 200 , data = result });
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("DeleteCourse")]
         public async Task<IActionResult> DeleteCourse(int id)
         {
@@ -473,20 +473,28 @@ namespace LearningHorizon.Controllers
             await _courseRepository.UpdateAsync(course);
 
             // Remove course from all users
-            foreach (var user in await _userRepository.SelectAllUsers())
+            try
             {
-                var u = await _userRepository.GetByIdAsync(user.id);
-                if (u != null)
+                var users = await _userRepository.GetAllUsersIncluding();
+                foreach (var user in users)
                 {
-                    if (u.CoursesShowed.Contains(course))
-                        u.CoursesShowed.Remove(course);
-                    if (u.CoursesPurchased.Contains(course))
-                        u.CoursesPurchased.Remove(course);
-                    _userRepository.Update(u);
+                    user.CoursesShowed.Remove(course);
+                    user.CoursesPurchased.Remove(course);
+                    _userRepository.Update(user);
                 }
+                await _userRepository.SaveChangesAsync();
+                await _lessonRepository.RemoveCourseLessons(id);
+                return Ok(new { status = 200, data = "Course deleted successfully" });
             }
-            await _userRepository.SaveChangesAsync();
-            return Ok("Course deleted successfully");
+            catch (Exception ex)
+            {
+                return Ok(new { status = 400, data = ex.Message });
+                throw;
+            }
+
+            // Remove Lessons 
+            
+
         }
 
         [HttpGet]
@@ -593,6 +601,7 @@ namespace LearningHorizon.Controllers
                 courseId = dtoLesson.courseId,
                 path = path,
                 duration = dtoLesson.durationInSeconds,
+                lessonOrder = dtoLesson.lessonOrder
             };
 
             await _lessonRepository.AddAsync(lesson);
@@ -762,16 +771,20 @@ namespace LearningHorizon.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("DeleteSlider")]
         public async Task<IActionResult> DeleteSlider(int id)
         {
             var slider = await _sliderRepository.GetByIdAsync(id);
+            
             if (slider == null)
                 return NotFound("No slider with this id");
+            if (System.IO.File.Exists(slider.path))
+                System.IO.File.Delete(slider.path);
+
             slider.isDeleted = true;
             await _sliderRepository.UpdateAsync(slider);
-            return Ok("Slider deleted successfully");
+            return Ok(new { status = 200, data = "Slider deleted successfully" });
         }
 
         [HttpGet]
