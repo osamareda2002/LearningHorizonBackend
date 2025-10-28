@@ -5,7 +5,7 @@ namespace LearningHorizon.Interfaces
 {
     public interface ISuggestRepository : IGenericRepository<Suggest>
     {
-        Task<List<DtoGetSuggest>> GetAllSuggests();
+        Task<List<DtoGetSuggest>> GetAllSuggests(string baseUrl);
         Task<DtoGetSuggest> GetById(int id);
     }
 }

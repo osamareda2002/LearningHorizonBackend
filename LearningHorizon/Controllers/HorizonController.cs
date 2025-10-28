@@ -28,6 +28,7 @@ namespace LearningHorizon.Controllers
         private readonly JwtTokenService _tokenService;
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
+        private string baseUrl => $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
         public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository)
         {
             _userRepository = userRepository;
@@ -41,6 +42,9 @@ namespace LearningHorizon.Controllers
             _cache = cache;
             _bookRepository = bookRepository;
         }
+
+        #region User
+
 
         [HttpGet]
         [Route("GetUserById")]
@@ -152,6 +156,12 @@ namespace LearningHorizon.Controllers
 
             return Ok(new { status = 200, data = data });
         }
+
+        #endregion
+
+
+        #region Book
+
 
         [HttpPost]
         [Route("AddNewBook")]
@@ -302,11 +312,16 @@ namespace LearningHorizon.Controllers
             return File(stream, contentType, enableRangeProcessing: true);
         }
 
+        #endregion
+
+
+        #region Course
+
         [HttpGet]
         [Route("GetAllCourses")]
         public async Task<IActionResult> GetAllCourses()
         {
-            var courses = await _courseRepository.SelectAllCourses();
+            var courses = await _courseRepository.SelectAllCourses(baseUrl);
             return Ok(courses);
         }
 
@@ -316,56 +331,6 @@ namespace LearningHorizon.Controllers
         {
             var course = await _courseRepository.SelectCourseById(id);
             return Ok(course);
-        }
-
-        [HttpGet]
-        [Route("GetCourseThumbnailFile")]
-        public async Task<IActionResult> GetCourseThumbnailFile(int id)
-        {
-            var course = await _courseRepository.GetByIdAsync(id);
-            if (course == null || string.IsNullOrEmpty(course.imagePath))
-                return NotFound("No course with this id or no file associated with it");
-
-            var filePath = course.imagePath;
-            if (!System.IO.File.Exists(filePath))
-                return NotFound("File not found");
-
-            var contentType = _courseRepository.GetContentType(filePath);
-            var fileInfo = new FileInfo(filePath);
-            var fileLength = fileInfo.Length;
-
-            var request = Request;
-            var response = Response;
-
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            if (request.Headers.ContainsKey("Range"))
-            {
-                var rangeHeader = request.Headers["Range"].ToString();
-                var range = rangeHeader.Replace("bytes=", "").Split('-');
-
-                long start = string.IsNullOrEmpty(range[0]) ? 0 : Convert.ToInt64(range[0]);
-                long end = string.IsNullOrEmpty(range[1]) ? fileLength - 1 : Convert.ToInt64(range[1]);
-
-                if (start > end || start < 0 || end >= fileLength)
-                {
-                    stream.Dispose(); // Dispose early on invalid range
-                    return BadRequest("Invalid Range");
-                }
-
-                stream.Seek(start, SeekOrigin.Begin);
-                long length = end - start + 1;
-
-                response.StatusCode = 206; // Partial Content
-                response.ContentLength = length;
-                response.Headers.Add("Content-Range", $"bytes {start}-{end}/{fileLength}");
-
-                return File(stream, contentType, enableRangeProcessing: true);
-            }
-
-            // No Range header - return full content
-            response.ContentLength = fileLength;
-            return File(stream, contentType, enableRangeProcessing: true);
         }
 
         [Authorize]
@@ -497,11 +462,16 @@ namespace LearningHorizon.Controllers
 
         }
 
+        #endregion
+
+
+        #region Lesson
+
         [HttpGet]
         [Route("GetAllLessons")]
         public async Task<IActionResult> GetAllLessons()
         {
-            var lessons = await _lessonRepository.SelectAllLessons();
+            var lessons = await _lessonRepository.SelectAllLessons(baseUrl);
             return Ok(lessons);
         }
 
@@ -516,60 +486,10 @@ namespace LearningHorizon.Controllers
         }
 
         [HttpGet]
-        [Route("GetLessonFile")]
-        public async Task<IActionResult> GetLessonFile(int id)
-        {
-            var lesson = await _lessonRepository.GetByIdAsync(id);
-            if (lesson == null || string.IsNullOrEmpty(lesson.path))
-                return NotFound("No lesson with this id or no file associated with it");
-
-            var filePath = lesson.path;
-            if (!System.IO.File.Exists(filePath))
-                return NotFound("File not found");
-
-            var contentType = _lessonRepository.GetContentType(filePath);
-            var fileInfo = new FileInfo(filePath);
-            var fileLength = fileInfo.Length;
-
-            var request = Request;
-            var response = Response;
-
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            if (request.Headers.ContainsKey("Range"))
-            {
-                var rangeHeader = request.Headers["Range"].ToString();
-                var range = rangeHeader.Replace("bytes=", "").Split('-');
-
-                long start = string.IsNullOrEmpty(range[0]) ? 0 : Convert.ToInt64(range[0]);
-                long end = string.IsNullOrEmpty(range[1]) ? fileLength - 1 : Convert.ToInt64(range[1]);
-
-                if (start > end || start < 0 || end >= fileLength)
-                {
-                    stream.Dispose(); // Dispose early on invalid range
-                    return BadRequest("Invalid Range");
-                }
-
-                stream.Seek(start, SeekOrigin.Begin);
-                long length = end - start + 1;
-
-                response.StatusCode = 206; // Partial Content
-                response.ContentLength = length;
-                response.Headers.Add("Content-Range", $"bytes {start}-{end}/{fileLength}");
-
-                return File(stream, contentType, enableRangeProcessing: true);
-            }
-
-            // No Range header - return full content
-            response.ContentLength = fileLength;
-            return File(stream, contentType, enableRangeProcessing: true);
-        }
-
-        [HttpGet]
         [Route("GetLessonsByCourseId")]
         public async Task<IActionResult> GetLessonsByCourseId(int courseId)
         {
-            var lessons = await _lessonRepository.SelectLessonsByCourseId(courseId);
+            var lessons = await _lessonRepository.SelectLessonsByCourseId(courseId, baseUrl);
             if (lessons == null || lessons.Count == 0)
                 return NotFound("No lessons found for this course");
             return Ok(lessons);
@@ -619,7 +539,7 @@ namespace LearningHorizon.Controllers
                 return NotFound("No lesson with this id");
 
             if (dtoLesson.title != null) lesson.title = dtoLesson.title;
-            if (dtoLesson.isFree != lesson.isFree) lesson.isFree = dtoLesson.isFree;
+            if (dtoLesson.isFree != lesson.isFree) lesson.isFree = (bool)dtoLesson.isFree;
             if (dtoLesson.courseId != lesson.courseId)
             {
                 var course = await _courseRepository.GetByIdAsync(dtoLesson.courseId);
@@ -666,11 +586,17 @@ namespace LearningHorizon.Controllers
             return Ok("Lesson deleted successfully");
         }
 
+        #endregion
+
+
+        #region Slider
+
+
         [HttpGet]
         [Route("GetAllSliders")]
         public async Task<IActionResult> GetAllSliders()
         {
-            var sliders = await _sliderRepository.GetAllSliders();
+            var sliders = await _sliderRepository.GetAllSliders(baseUrl);
             return Ok(sliders);
         }
 
@@ -678,60 +604,10 @@ namespace LearningHorizon.Controllers
         [Route("GetSliderById")]
         public async Task<IActionResult> GetSliderById(int id)
         {
-            var slider = await _sliderRepository.GetByIdAsync(id);
+            var slider = await _sliderRepository.GetById(id, baseUrl);
             if (slider == null)
                 return NotFound("No slider with this id");
             return Ok(slider);
-        }
-
-        [HttpGet]
-        [Route("GetSliderFile")]
-        public async Task<IActionResult> GetSliderFile(int id)
-        {
-            var slider = await _sliderRepository.GetByIdAsync(id);
-            if (slider == null || string.IsNullOrEmpty(slider.path))
-                return NotFound("No lesson with this id or no file associated with it");
-
-            var filePath = slider.path;
-            if (!System.IO.File.Exists(filePath))
-                return NotFound("File not found");
-
-            var contentType = _sliderRepository.GetContentType(filePath);
-            var fileInfo = new FileInfo(filePath);
-            var fileLength = fileInfo.Length;
-
-            var request = Request;
-            var response = Response;
-
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            if (request.Headers.ContainsKey("Range"))
-            {
-                var rangeHeader = request.Headers["Range"].ToString();
-                var range = rangeHeader.Replace("bytes=", "").Split('-');
-
-                long start = string.IsNullOrEmpty(range[0]) ? 0 : Convert.ToInt64(range[0]);
-                long end = string.IsNullOrEmpty(range[1]) ? fileLength - 1 : Convert.ToInt64(range[1]);
-
-                if (start > end || start < 0 || end >= fileLength)
-                {
-                    stream.Dispose(); // Dispose early on invalid range
-                    return BadRequest("Invalid Range");
-                }
-
-                stream.Seek(start, SeekOrigin.Begin);
-                long length = end - start + 1;
-
-                response.StatusCode = 206; // Partial Content
-                response.ContentLength = length;
-                response.Headers.Add("Content-Range", $"bytes {start}-{end}/{fileLength}");
-
-                return File(stream, contentType, enableRangeProcessing: true);
-            }
-
-            // No Range header - return full content
-            response.ContentLength = fileLength;
-            return File(stream, contentType, enableRangeProcessing: true);
         }
 
         [HttpPost]
@@ -762,7 +638,7 @@ namespace LearningHorizon.Controllers
                 };
                 
                 await _sliderRepository.AddAsync(slider);
-                var result = await _sliderRepository.GetById(slider.id);
+                var result = await _sliderRepository.GetById(slider.id, baseUrl);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -787,23 +663,17 @@ namespace LearningHorizon.Controllers
             return Ok(new { status = 200, data = "Slider deleted successfully" });
         }
 
+        #endregion
+
+
+        #region Suggest Videos
+
+
         [HttpGet]
         [Route("GetAllSuggestions")]
         public async Task<IActionResult> GetAllSuggestions()
         {
-            const string cacheKey = "all_suggestions";
-            if (!_cache.TryGetValue(cacheKey,out var suggests))
-            {
-                suggests = await _suggestRepository.GetAllSuggests();
-
-                var cacheOptions = new MemoryCacheEntryOptions()
-                        .SetSlidingExpiration(TimeSpan.FromMinutes(10)) // refresh if used
-                        .SetAbsoluteExpiration(TimeSpan.FromHours(5));
-
-                _cache.Set(cacheKey, suggests, cacheOptions);
-            }
-
-
+            var suggests = await _suggestRepository.GetAllSuggests(baseUrl);
             return Ok(suggests);
         }
 
@@ -813,56 +683,6 @@ namespace LearningHorizon.Controllers
         {
             var suggest = await _suggestRepository.GetByIdAsync(id);
             return Ok(suggest);
-        }
-
-        [HttpGet]
-        [Route("GetSuggestionFile")]
-        public async Task<IActionResult> GetSuggestionFile(int id)
-        {
-            var suggest = await _suggestRepository.GetByIdAsync(id);
-            if (suggest == null || string.IsNullOrEmpty(suggest.path))
-                return NotFound("No lesson with this id or no file associated with it");
-
-            var filePath = suggest.path;
-            if (!System.IO.File.Exists(filePath))
-                return NotFound("File not found");
-
-            var contentType = _suggestRepository.GetContentType(filePath);
-            var fileInfo = new FileInfo(filePath);
-            var fileLength = fileInfo.Length;
-
-            var request = Request;
-            var response = Response;
-
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            if (request.Headers.ContainsKey("Range"))
-            {
-                var rangeHeader = request.Headers["Range"].ToString();
-                var range = rangeHeader.Replace("bytes=", "").Split('-');
-
-                long start = string.IsNullOrEmpty(range[0]) ? 0 : Convert.ToInt64(range[0]);
-                long end = string.IsNullOrEmpty(range[1]) ? fileLength - 1 : Convert.ToInt64(range[1]);
-
-                if (start > end || start < 0 || end >= fileLength)
-                {
-                    stream.Dispose(); // Dispose early on invalid range
-                    return BadRequest("Invalid Range");
-                }
-
-                stream.Seek(start, SeekOrigin.Begin);
-                long length = end - start + 1;
-
-                response.StatusCode = 206; // Partial Content
-                response.ContentLength = length;
-                response.Headers.Add("Content-Range", $"bytes {start}-{end}/{fileLength}");
-
-                return File(stream, contentType, enableRangeProcessing: true);
-            }
-
-            // No Range header - return full content
-            response.ContentLength = fileLength;
-            return File(stream, contentType, enableRangeProcessing: true);
         }
 
         [RequestSizeLimit(268435456)]
@@ -918,6 +738,11 @@ namespace LearningHorizon.Controllers
             await _suggestRepository.UpdateAsync(suggest);
             return Ok("Suggest deleted successfully");
         }
+
+        #endregion
+
+
+        #region Payment
 
 
         [Authorize]
@@ -1026,5 +851,6 @@ namespace LearningHorizon.Controllers
             }
         }
 
+        #endregion
     }
 }

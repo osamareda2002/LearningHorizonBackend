@@ -5,7 +5,7 @@ namespace LearningHorizon.Interfaces
 {
     public interface ISliderRepository : IGenericRepository<Slider>
     {
-        Task<List<DtoGetSlider>> GetAllSliders();
-        Task<DtoGetSlider> GetById(int id);
+        Task<List<DtoGetSlider>> GetAllSliders(string baseUrl);
+        Task<DtoGetSlider> GetById(int id, string baseUrl);
     }
 }

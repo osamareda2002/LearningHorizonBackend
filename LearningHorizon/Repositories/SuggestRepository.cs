@@ -15,13 +15,13 @@ namespace LearningHorizon.Repositories
             _context = context;
         }
 
-        public async Task<List<DtoGetSuggest>> GetAllSuggests()
+        public async Task<List<DtoGetSuggest>> GetAllSuggests(string baseUrl)
         {
             var suggests = await _context.Suggests.Where(x => !x.isDeleted).AsNoTracking().Select(x => new DtoGetSuggest
             {
                 id = x.id,
                 title = x.title,
-                path = x.path,
+                path = $"{baseUrl}/Media/Suggest/{Path.GetFileName(x.path)}",
             }).OrderByDescending(x => x.id).ToListAsync();
             return suggests;
         }

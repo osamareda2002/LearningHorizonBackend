@@ -32,14 +32,14 @@ namespace LearningHorizon.Repositories
                 }).FirstOrDefaultAsync();
             return lesson;
         }
-        public async Task<List<DtoGetLesson>> SelectAllLessons()
+        public async Task<List<DtoGetLesson>> SelectAllLessons(string baseUrl)
         {
             var lessons = await _context.Lessons.Where(x => !x.isDeleted).AsNoTracking()
                 .Select(l => new DtoGetLesson
                 {
                     id = l.id,
                     title = l.title,
-                    path = l.path,
+                    path = $"{baseUrl}/Media/Courses/{l.course.title}/{Path.GetFileName(l.path)}",
                     isFree = l.isFree,
                     courseId = l.courseId,
                     courseTitle = l.course.title,
@@ -49,14 +49,14 @@ namespace LearningHorizon.Repositories
                 }).ToListAsync();
             return lessons;
         }
-        public async Task<List<DtoGetLesson>> SelectLessonsByCourseId(int courseId)
+        public async Task<List<DtoGetLesson>> SelectLessonsByCourseId(int courseId, string baseUrl)
         {
             var lessons = await _context.Lessons.Where(x => x.courseId == courseId && !x.isDeleted).AsNoTracking()
                 .Select(l => new DtoGetLesson
                 {
                     id = l.id,
                     title = l.title,
-                    path = l.path,
+                    path = $"{baseUrl}/Media/Courses/{l.course.title}/{Path.GetFileName(l.path)}",
                     isFree = l.isFree,
                     courseId = l.courseId,
                     duration = l.duration ?? 0

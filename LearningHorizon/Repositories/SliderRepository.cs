@@ -14,27 +14,27 @@ namespace LearningHorizon.Repositories
             _context = context;
         }
 
-        public async Task<List<DtoGetSlider>> GetAllSliders()
+        public async Task<List<DtoGetSlider>> GetAllSliders(string baseUrl)
         {
             var sliders = await _context.Sliders.Where(x => !x.isDeleted).AsNoTracking()
                 .Select(s => new DtoGetSlider
                 {
                     id = s.id,
                     title = s.title,
-                    path = s.path,
+                    path = $"{baseUrl}/Media/Images/Sliders/{Path.GetFileName(s.path)}",
                     link = s.link
                 }).OrderByDescending(x => x.id).ToListAsync();
             return sliders;
         }
         
-        public async Task<DtoGetSlider> GetById(int id)
+        public async Task<DtoGetSlider> GetById(int id, string baseUrl)
         {
             var slider = await _context.Sliders.Where(x => !x.isDeleted && x.id == id).AsNoTracking()
                 .Select(s => new DtoGetSlider
                 {
                     id = s.id,
                     title = s.title,
-                    path = s.path,
+                    path = $"{baseUrl}/Media/Images/Sliders/{Path.GetFileName(s.path)}",
                     link = s.link
                 }).FirstOrDefaultAsync();
 

@@ -15,7 +15,7 @@ namespace LearningHorizon.Repositories
             _context = context;
         }
 
-        public async Task<List<DtoGetCourse>> SelectAllCourses()
+        public async Task<List<DtoGetCourse>> SelectAllCourses(string baseUrl)
         {
             var courses = await _context.Courses.Where(x => !x.isDeleted).AsNoTracking()
                 .Select(c => new DtoGetCourse
@@ -25,7 +25,7 @@ namespace LearningHorizon.Repositories
                     courseCreator = c.creator,
                     coursePrice = c.price,
                     coursePath = c.path,
-                    courseImagePath = c.imagePath,
+                    courseImagePath = $"{baseUrl}/Media/Images/CourseImages/{Path.GetFileName(c.imagePath)}",
                     lessonsCount = c.Lessons.Count,
                     courseDurationInSeconds = c.Lessons.Sum(l => l.duration ?? 0)
                 }).OrderByDescending(x => x.courseId).ToListAsync();

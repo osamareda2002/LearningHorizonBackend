@@ -6,7 +6,7 @@ namespace LearningHorizon.Interfaces
 {
     public interface ICourseRepository : IGenericRepository<Course>
     {
-        Task<List<DtoGetCourse>> SelectAllCourses();
+        Task<List<DtoGetCourse>> SelectAllCourses(string baseUrl);
         Task<DtoGetCourse> SelectCourseById(int id);
     }
 }
