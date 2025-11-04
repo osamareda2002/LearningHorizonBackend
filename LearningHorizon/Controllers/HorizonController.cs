@@ -574,16 +574,24 @@ namespace LearningHorizon.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("DeleteLesson")]
         public async Task<IActionResult> DeleteLesson(int id)
         {
-            var lesson = await _lessonRepository.GetByIdAsync(id);
-            if (lesson == null)
-                return NotFound("No lesson with this id");
-            lesson.isDeleted = true;
-            await _lessonRepository.UpdateAsync(lesson);
-            return Ok("Lesson deleted successfully");
+            try
+            {
+                var lesson = await _lessonRepository.GetByIdAsync(id);
+                if (lesson == null)
+                    return NotFound("No lesson with this id");
+                lesson.isDeleted = true;
+                await _lessonRepository.UpdateAsync(lesson);
+                return Ok(new { status = 200, data = "Lesson deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { status = 400, data = ex.Message });
+                throw;
+            }
         }
 
         #endregion
@@ -647,6 +655,7 @@ namespace LearningHorizon.Controllers
             }
         }
 
+        
         [HttpGet]
         [Route("DeleteSlider")]
         public async Task<IActionResult> DeleteSlider(int id)
@@ -725,18 +734,30 @@ namespace LearningHorizon.Controllers
             }
         }
 
-        [HttpDelete]
-        [Route("DeleteSuggestVideo")]
+        [HttpPost]
+        [Route("EditSuggestion")]
+        public async Task<IActionResult> EditSuggestion(DtoEditSuggestion dto)
+        {
+            var suggestion = _suggestRepository.FindBy(x => x.id == dto.id && x.isDeleted != true).FirstOrDefault();
+            if (suggestion != null)
+            {
+                if (dto.title != null) suggestion.title = dto.title;
+                await _suggestRepository.UpdateAsync(suggestion);
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("DeleteSuggest")]
         public async Task<IActionResult> DeleteSuggestVideo(int id)
         {
-            _cache.Remove("all_suggestions");
             var suggest = await _suggestRepository.GetByIdAsync(id);
             if (suggest == null)
                 return BadRequest("Invaild Id");
 
             suggest.isDeleted= true;
             await _suggestRepository.UpdateAsync(suggest);
-            return Ok("Suggest deleted successfully");
+            return Ok(new {status = 200, data= "Suggest deleted successfully" });
         }
 
         #endregion

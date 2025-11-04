@@ -59,8 +59,10 @@ namespace LearningHorizon.Repositories
                     path = $"{baseUrl}/Media/Courses/{l.course.title}/{Path.GetFileName(l.path)}",
                     isFree = l.isFree,
                     courseId = l.courseId,
-                    duration = l.duration ?? 0
-                }).ToListAsync();
+                    duration = l.duration ?? 0,
+                    durationInMinutes = (int)Math.Round(l.duration.Value / 60.0),
+                    arrange = l.lessonOrder
+                }).OrderBy(x => x.arrange).ToListAsync();
             return lessons;
         }
 
