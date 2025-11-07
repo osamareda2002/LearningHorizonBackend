@@ -23,16 +23,17 @@ namespace LearningHorizon.Repositories
                     id = u.id,
                     firstName = u.firstName,
                     lastName = u.lastName,
-                    email = u.email,
-                    country = u.country,
-                    city = u.city,
-                    university = u.university,
-                    major = u.major,
-                    acadimcYear = u.acadimcYear,
-                    howDidYouKnowUs = u.howDidYouKnowUs,
-                    graduationYear = u.graduationYear,
                     isAdmin = u.isAdmin,
-                }).ToListAsync();
+                    profilePicURL = u.profilePic
+                    //email = u.email,
+                    //country = u.country,
+                    //city = u.city,
+                    //university = u.university,
+                    //major = u.major,
+                    //acadimcYear = u.acadimcYear,
+                    //howDidYouKnowUs = u.howDidYouKnowUs,
+                    //graduationYear = u.graduationYear,
+                }).OrderByDescending(x => x.isAdmin).ThenBy(x => x.id).ToListAsync();
             return users;
         }
 

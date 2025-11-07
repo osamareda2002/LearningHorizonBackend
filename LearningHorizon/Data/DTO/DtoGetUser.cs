@@ -14,7 +14,7 @@
         public string? acadimcYear { get; set; }
         public string? howDidYouKnowUs { get; set; }
         public DateTime? graduationYear { get; set; }
-
+        public string? profilePicURL { get; set; }
         public List<int> purchasedCourses { get; set; } = new List<int>();
 
     }
