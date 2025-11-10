@@ -37,6 +37,9 @@ namespace LearningHorizon.Data.Models
         // Navigation properties
         public virtual ICollection<Course> CoursesShowed { get; set; } = new HashSet<Course>();
         public virtual ICollection<Course> CoursesPurchased { get; set; } = new HashSet<Course>();
+        public virtual ICollection<Meeting> hostedMeetings { get; set; } = new HashSet<Meeting>();
+        public virtual ICollection<Meeting> participatedMeetings { get; set; } = new HashSet<Meeting>();
+
 
     }
 }

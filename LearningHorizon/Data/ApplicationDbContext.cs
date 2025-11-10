@@ -16,6 +16,7 @@ namespace LearningHorizon.Data
         public DbSet<Suggest> Suggests { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Book> Books { get; set; }
+        public DbSet<Meeting> Meetings { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,10 +40,18 @@ namespace LearningHorizon.Data
             modelBuilder.Entity<User>()
                 .Navigation(u => u.CoursesPurchased)
                 .AutoInclude();
+
+            modelBuilder.Entity<Meeting>()
+                .HasOne(m => m.host)
+                .WithMany(u => u.hostedMeetings)
+                .HasForeignKey(m => m.hostId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Meeting>()
+                .HasMany(m => m.participates)
+                .WithMany(u => u.participatedMeetings)
+                .UsingEntity(j => j.ToTable("UserMeetings"));
         }
-
-
-
     }
 }
 

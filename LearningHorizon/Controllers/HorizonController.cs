@@ -1,4 +1,7 @@
-﻿using LearningHorizon.Data.DTO;
+﻿using JWT;
+using JWT.Algorithms;
+using JWT.Serializers;
+using LearningHorizon.Data.DTO;
 using LearningHorizon.Data.Models;
 using LearningHorizon.Interfaces;
 using LearningHorizon.Services;
@@ -25,11 +28,12 @@ namespace LearningHorizon.Controllers
         private readonly ISuggestRepository _suggestRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IBookRepository _bookRepository;
+        private readonly IMeetingRepository _meetingRepository;
         private readonly JwtTokenService _tokenService;
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
         private string baseUrl => $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
-        public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository)
+        public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository, IMeetingRepository meetingRepository)
         {
             _userRepository = userRepository;
             _courseRepository = courseRepository;
@@ -41,6 +45,7 @@ namespace LearningHorizon.Controllers
             _configuration = configuration;
             _cache = cache;
             _bookRepository = bookRepository;
+            _meetingRepository = meetingRepository;
         }
 
         #region User
@@ -870,6 +875,107 @@ namespace LearningHorizon.Controllers
             {
                 return Ok(new { status = 401, message = "UnAuthorized" });
             }
+        }
+
+        #endregion
+
+
+        #region Meeting Sessions
+
+        [HttpPost]
+        [Route("AddNewMeeting")]
+        public async Task<IActionResult> AddNewMeeting(DtoAddNewMeeting dto)
+        {
+            if (string.IsNullOrEmpty(User.FindFirst("id")?.Value))
+                return Ok(new { status = 400, message = "s Not found" });
+            var userId = int.Parse(User.FindFirst("id")?.Value);
+
+            var user = _userRepository.FindBy(x => x.id == userId && !x.isDeleted).Select(u => new
+            {
+                userId = userId,
+                email = u.email,
+                isAdmin = u.isAdmin
+            }).FirstOrDefault();
+            if (user == null || !user.isAdmin)
+                return Ok(new { status = 400, message = "User UnAuthorized"});
+
+            dto.hostId = userId;
+            dto.hostEmail = user.email;
+            var result = await _meetingRepository.AddNewMeeting(dto);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("GetAllMeetingsInfo")]
+        public async Task<IActionResult> GetAllMeetingsInfo()
+        {
+            var result = await _meetingRepository.DtoGetAllMeetingsInfo();
+            return Ok(result);
+        }
+
+        [HttpPost("GenerateZoomSignature")]
+        public IActionResult GenerateSignature(ZoomSignatureRequest request)
+        {
+            var sdkKey = _configuration["Zoom:sdkKey"];
+            var sdkSecret = _configuration["Zoom:sdkSecret"];
+
+            if (string.IsNullOrEmpty(request.MeetingNumber))
+                return BadRequest("Meeting number is required.");
+
+            try
+            {
+                long iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                long exp = iat + 60 * 60 * 2; // valid for 2 hours
+
+                var payload = new
+                {
+                    appKey = sdkKey,
+                    mn = request.MeetingNumber,
+                    role = request.Role,
+                    iat = iat,
+                    exp = exp,
+                    tokenExp = exp
+                };
+
+                var secretBytes = Encoding.UTF8.GetBytes(sdkSecret);
+
+                IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
+                IJsonSerializer serializer = new JsonNetSerializer();
+                IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
+                IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
+
+                var token = encoder.Encode(payload, secretBytes);
+
+                return Ok(new { signature = token });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+
+
+        }
+
+        [HttpGet("HostJoined")]
+        public async Task<IActionResult> HostJoined(string meetingNumber)
+        {
+            var meeting = _meetingRepository.FindBy(m => m.meetingId.ToString() == meetingNumber).FirstOrDefault();
+            if (meeting == null)
+                return NotFound("Meeting not found");
+            meeting.adminJoined = true;
+            await _meetingRepository.UpdateAsync(meeting);
+            return Ok(new { status = 200, data = "Host joined updated successfully" });
+        }
+
+        [HttpGet("MeetingFinished")]
+        public async Task<IActionResult> MeetingFinished(string meetingNumber)
+        {
+            var meeting = _meetingRepository.FindBy(m => m.meetingId.ToString() == meetingNumber).FirstOrDefault();
+            if (meeting == null)
+                return NotFound("Meeting not found");
+            meeting.isFinished = true;
+            await _meetingRepository.UpdateAsync(meeting);
+            return Ok(new { status = 200, data = "Meeting updated successfully" });
         }
 
         #endregion

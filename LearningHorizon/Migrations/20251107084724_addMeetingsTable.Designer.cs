@@ -4,6 +4,7 @@ using LearningHorizon.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningHorizon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251107084724_addMeetingsTable")]
+    partial class addMeetingsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,9 +172,6 @@ namespace LearningHorizon.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
 
-                    b.Property<bool>("adminJoined")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("createdAt")
                         .HasColumnType("datetime2");
 
@@ -184,17 +184,11 @@ namespace LearningHorizon.Migrations
                     b.Property<int>("hostId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("isFinished")
-                        .HasColumnType("bit");
-
                     b.Property<string>("joinUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("meetingId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("meetingId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("numericPassword")
                         .HasColumnType("nvarchar(max)");

@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "https://localhost:4200", "https://learning-horizon.net", "https://learninghorizon.netlify.app", "https://learning-horizon-angular.vercel.app")
+            policy.WithOrigins("http://localhost:63435", "http://localhost:4200", "https://localhost:4200", "https://learning-horizon.net", "https://learninghorizon.netlify.app", "https://learning-horizon-angular.vercel.app")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -56,6 +56,7 @@ builder.Services.AddTransient<ISliderRepository,SliderRepository>();
 builder.Services.AddTransient<ISuggestRepository,SuggestRepository>();
 builder.Services.AddTransient<IOrderRepository,OrderRepository>();
 builder.Services.AddTransient<IBookRepository,BookRepository>();
+builder.Services.AddTransient<IMeetingRepository,MeetingRepository>();
 
 builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();
