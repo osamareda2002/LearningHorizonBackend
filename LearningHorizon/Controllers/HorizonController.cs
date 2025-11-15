@@ -29,11 +29,16 @@ namespace LearningHorizon.Controllers
         private readonly IOrderRepository _orderRepository;
         private readonly IBookRepository _bookRepository;
         private readonly IMeetingRepository _meetingRepository;
+        private readonly IExamRepository _examRepository;
+        private readonly IQuestionRepository _questionRepository;
+        private readonly IAnswerRepository _answerRepository;
+        private readonly IUserExamRepository _userExamRepository;
+        private readonly IExamSubmissionsRepository _examSubmissionsRepository;
         private readonly JwtTokenService _tokenService;
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
         private string baseUrl => $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
-        public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository, IMeetingRepository meetingRepository)
+        public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository, IMeetingRepository meetingRepository, IExamRepository examRepository, IQuestionRepository questionRepository, IAnswerRepository answerRepository, IExamSubmissionsRepository examSubmissionsRepository, IUserExamRepository userExamRepository)
         {
             _userRepository = userRepository;
             _courseRepository = courseRepository;
@@ -46,6 +51,11 @@ namespace LearningHorizon.Controllers
             _cache = cache;
             _bookRepository = bookRepository;
             _meetingRepository = meetingRepository;
+            _examRepository = examRepository;
+            _questionRepository = questionRepository;
+            _answerRepository = answerRepository;
+            _examSubmissionsRepository = examSubmissionsRepository;
+            _userExamRepository = userExamRepository;
         }
 
         #region User
@@ -82,18 +92,18 @@ namespace LearningHorizon.Controllers
         [Route("DeleteUser")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = _userRepository.FindBy(x=>x.id ==id && x.isDeleted != true).FirstOrDefault();
+            var user = _userRepository.FindBy(x => x.id == id && x.isDeleted != true).FirstOrDefault();
 
-            if(user  == null)
-                return Ok(new {status = 400, message = "No user with this id" });
-            else if(user.isOwner)
+            if (user == null)
+                return Ok(new { status = 400, message = "No user with this id" });
+            else if (user.isOwner)
                 return Ok(new { status = 400, message = "Can't Delete Owner" });
 
             user.isDeleted = true;
             await _userRepository.UpdateAsync(user);
 
             var result = await _userRepository.GetAllAsync();
-            return Ok(new {status = 200, data = result });
+            return Ok(new { status = 200, data = result });
         }
 
         [HttpPost]
@@ -341,7 +351,7 @@ namespace LearningHorizon.Controllers
         [Authorize]
         [HttpPost]
         [Route("AddNewCourse")]
-        public async Task<IActionResult> AddNewCourse([FromForm]DtoAddCourse dtoCourse)
+        public async Task<IActionResult> AddNewCourse([FromForm] DtoAddCourse dtoCourse)
         {
 
             if (string.IsNullOrEmpty(User.FindFirst("id")?.Value))
@@ -382,7 +392,7 @@ namespace LearningHorizon.Controllers
             };
             var addedCourse = await _courseRepository.AddAsync(course);
 
-            foreach ( var u in await _userRepository.SelectAllUsers())
+            foreach (var u in await _userRepository.SelectAllUsers())
             {
                 var user = await _userRepository.GetByIdAsync(u.id);
                 if (user != null)
@@ -404,11 +414,11 @@ namespace LearningHorizon.Controllers
             var course = await _courseRepository.GetByIdAsync((int)dtoCourse.courseId);
             if (course == null)
                 return NotFound("No course with this id");
-            
-            if(dtoCourse.courseTitle!= null) course.title = dtoCourse.courseTitle;
-            if(dtoCourse.courseCreator != null) course.creator = dtoCourse.courseCreator;
-            if(dtoCourse.coursePrice != null) course.price = (decimal)dtoCourse.coursePrice;
-            if(dtoCourse.courseImage != null)
+
+            if (dtoCourse.courseTitle != null) course.title = dtoCourse.courseTitle;
+            if (dtoCourse.courseCreator != null) course.creator = dtoCourse.courseCreator;
+            if (dtoCourse.coursePrice != null) course.price = (decimal)dtoCourse.coursePrice;
+            if (dtoCourse.courseImage != null)
             {
                 string currentDirectory = Directory.GetCurrentDirectory();
                 string courseImagePath = Path.Combine(currentDirectory, "Media", "Images", "CourseImages", dtoCourse.courseImage.FileName);
@@ -429,7 +439,7 @@ namespace LearningHorizon.Controllers
 
             await _courseRepository.UpdateAsync(course);
             var result = await _courseRepository.SelectCourseById(course.id);
-            return Ok(new { status = 200 , data = result });
+            return Ok(new { status = 200, data = result });
         }
 
         [HttpGet]
@@ -463,7 +473,7 @@ namespace LearningHorizon.Controllers
             }
 
             // Remove Lessons 
-            
+
 
         }
 
@@ -503,7 +513,7 @@ namespace LearningHorizon.Controllers
         [HttpPost]
         [RequestSizeLimit(10737418240 /*0x0280000000*/)]
         [Route("AddLesson")]
-        public async Task <IActionResult> AddLesson([FromForm] DtoAddLesson dtoLesson)
+        public async Task<IActionResult> AddLesson([FromForm] DtoAddLesson dtoLesson)
         {
             var course = await _courseRepository.GetByIdAsync(dtoLesson.courseId);
             if (course == null)
@@ -537,7 +547,7 @@ namespace LearningHorizon.Controllers
         [HttpPost]
         [RequestSizeLimit(10737418240 /*0x0280000000*/)]
         [Route("EditLesson")]
-        public async Task <IActionResult> EditLesson([FromForm] DtoEditLesson dtoLesson)
+        public async Task<IActionResult> EditLesson([FromForm] DtoEditLesson dtoLesson)
         {
             var lesson = await _lessonRepository.GetByIdAsync(dtoLesson.id);
             if (lesson == null)
@@ -565,10 +575,10 @@ namespace LearningHorizon.Controllers
                     Directory.CreateDirectory(str);
 
                 string path = Path.Combine(str, dtoLesson.lessonFile.FileName);
-                
+
                 if (!string.IsNullOrEmpty(lesson.path) && System.IO.File.Exists(lesson.path))
                     System.IO.File.Delete(lesson.path);
-                
+
                 using (FileStream stream = new FileStream(path, FileMode.Create))
                     await dtoLesson.lessonFile.CopyToAsync((Stream)stream);
                 lesson.path = path;
@@ -630,7 +640,7 @@ namespace LearningHorizon.Controllers
             var titleIsExist = _sliderRepository.FindBy(x => x.title == dtoSlider.title && !x.isDeleted);
             if (titleIsExist.Any())
                 return BadRequest("Slider title already exists");
-            
+
             var extension = Path.GetExtension(dtoSlider.file.FileName).ToLower();
             var path = Path.Combine(Directory.GetCurrentDirectory(), "Media", "Images", "Sliders", dtoSlider.title + extension);
 
@@ -646,10 +656,10 @@ namespace LearningHorizon.Controllers
                 var slider = new Slider
                 {
                     title = dtoSlider.title,
-                    link = dtoSlider.link,  
+                    link = dtoSlider.link,
                     path = path,
                 };
-                
+
                 await _sliderRepository.AddAsync(slider);
                 var result = await _sliderRepository.GetById(slider.id, baseUrl);
                 return Ok(result);
@@ -660,13 +670,13 @@ namespace LearningHorizon.Controllers
             }
         }
 
-        
+
         [HttpGet]
         [Route("DeleteSlider")]
         public async Task<IActionResult> DeleteSlider(int id)
         {
             var slider = await _sliderRepository.GetByIdAsync(id);
-            
+
             if (slider == null)
                 return NotFound("No slider with this id");
             if (System.IO.File.Exists(slider.path))
@@ -760,9 +770,9 @@ namespace LearningHorizon.Controllers
             if (suggest == null)
                 return BadRequest("Invaild Id");
 
-            suggest.isDeleted= true;
+            suggest.isDeleted = true;
             await _suggestRepository.UpdateAsync(suggest);
-            return Ok(new {status = 200, data= "Suggest deleted successfully" });
+            return Ok(new { status = 200, data = "Suggest deleted successfully" });
         }
 
         #endregion
@@ -788,7 +798,7 @@ namespace LearningHorizon.Controllers
             var course = _courseRepository.FindBy(x => x.id == dtoOrder.courseId && !x.isDeleted).FirstOrDefault();
             if (course == null)
                 return Ok(new { status = 400, message = "Course Not found" });
-            if(user.CoursesPurchased.Contains(course))
+            if (user.CoursesPurchased.Contains(course))
                 return Ok(new { status = 400, message = "Course already purchased" });
 
             var order = new Order
@@ -897,7 +907,7 @@ namespace LearningHorizon.Controllers
                 isAdmin = u.isAdmin
             }).FirstOrDefault();
             if (user == null || !user.isAdmin)
-                return Ok(new { status = 400, message = "User UnAuthorized"});
+                return Ok(new { status = 400, message = "User UnAuthorized" });
 
             dto.hostId = userId;
             dto.hostEmail = user.email;
@@ -979,5 +989,239 @@ namespace LearningHorizon.Controllers
         }
 
         #endregion
+
+
+        #region Exams
+
+        [HttpGet("GetUpcomingExams")]
+        public async Task<IActionResult> GetUpcomingExams()
+        {
+            var userId = getUserId();
+            if(userId == -1)
+                return Ok(new { status = 400, data = "User not found" });
+            var result = await _examRepository.GetUpcomingExams(userId);
+            return Ok(result);
+        }
+        [HttpGet("GetAllExams")]
+        public async Task<IActionResult> GetAllExams()
+        {
+            var result = await _examRepository.GetAllExams();
+            return Ok(result);
+        }
+        [HttpPost("AddExam")]
+        public async Task<IActionResult> AddExam(DtoAddExam dtoExam)
+        {
+            try
+            {
+                var result = await _examRepository.AddExam(dtoExam);
+                return Ok(new { status = 200, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { status = 400, data = "something went wrong" });
+            }
+        }
+        [HttpGet("DeleteExam")]
+        public async Task<IActionResult> DeleteExam(int id)
+        {
+            var exam = await _examRepository.GetByIdAsync(id);
+            if (exam == null)
+                return Ok(new { status = 400, data = "something went wrong" });
+            _examRepository.Delete(exam);
+            await _examRepository.SaveChangesAsync();
+            return Ok(new { status = 200, data = "done" });
+        }
+        [HttpPost("AddExamQuestions")]
+        public async Task<IActionResult> AddExamQuestions(DtoAddExamQuestions dtoExamQuestions)
+        {
+            var exam = await _examRepository.GetByIdAsync(dtoExamQuestions.examId);
+            if (exam == null)
+                return Ok(new { status = 400, data = "something went wrong" });
+
+            try
+            {
+                foreach (var question in dtoExamQuestions.questions)
+                {
+                    var questionObject = new Question
+                    {
+                        questionText = question.questionText,
+                        examId = dtoExamQuestions.examId,
+                        mark = question.Mark
+                    };
+                    await _questionRepository.AddAsync(questionObject);
+
+                    foreach (var option in question.options)
+                    {
+                        var answerObject = new Answer
+                        {
+                            answerText = option.answerText,
+                            isCorrect = option.isCorrect,
+                            questionId = questionObject.id
+                        };
+                        _answerRepository.Add(answerObject);
+                    }
+                }
+                await _answerRepository.SaveChangesAsync();
+                return Ok(new { status = 200, data = "Questions added successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { status = 400, data = "something went wrong" });
+            }
+        }
+
+        [HttpGet("GetExamQuestions")]
+        public async Task<IActionResult> GetExamQuestions(int examId)
+        {
+            try
+            {
+                var result = await _examRepository.GetExamQuestions(examId);
+                return Ok(new { status = 200, data = result });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception is : {ex.Message}");
+                return Ok(new { status = 400, data = "something went wrong" });
+            }
+        }
+
+        [HttpPost("SubmitExamAnswers")]
+        public async Task<IActionResult> SubmitExamAnswers(DtoSubmitExamAnswers dtoSubmissions)
+        {
+            try
+            {
+                var userId = getUserId();
+                if (userId == -1)
+                    return Ok(new { status = 400, data = "User not found" });
+
+                var question = await _questionRepository.GetByIdAsync(dtoSubmissions.questionId);
+                var correctAnswer = question.answers.FirstOrDefault(a => a.isCorrect);
+                var userAnswer = await _answerRepository.GetByIdAsync(dtoSubmissions.answerId);
+                var userExam = _userExamRepository.FindBy(ue => ue.userId == userId && ue.examId == dtoSubmissions.examId).FirstOrDefault();
+                if (question == null || correctAnswer == null || userAnswer == null)
+                    return Ok(new { status = 400, data = "something went wrong" });
+
+                var submissionObj = _examSubmissionsRepository.FindBy(x => x.userId == userId &&
+                                                                           x.examId == dtoSubmissions.examId &&
+                                                                           x.quesionId == dtoSubmissions.questionId).FirstOrDefault();
+                if(submissionObj != null)
+                {
+                    submissionObj.answerId = dtoSubmissions.answerId;
+                    _examSubmissionsRepository.Update(submissionObj);
+                    await _examSubmissionsRepository.SaveChangesAsync();
+
+                }
+                else
+                {
+                    var submission = new ExamSubmission
+                    {
+                        examId = dtoSubmissions.examId,
+                        userId = userId,
+                        quesionId = dtoSubmissions.questionId,
+                        answerId = dtoSubmissions.answerId,
+                        submissionTime = DateTime.UtcNow,
+                        isCorrect = correctAnswer.id == userAnswer.id
+                    };
+
+                    await _examSubmissionsRepository.AddAsync(submission);
+                }
+
+                
+                if (userExam != null)
+                {
+                    userExam.currentQuestionId = dtoSubmissions.questionId;
+                    _userExamRepository.Update(userExam);
+                }
+                else
+                {
+                    var userExamObj = new UserExam
+                    {
+                        userId = userId,
+                        examId = dtoSubmissions.examId,
+                        currentQuestionId = dtoSubmissions.questionId
+                    };
+                    _userExamRepository.Add(userExamObj);
+                }
+
+                await _userExamRepository.SaveChangesAsync();
+
+                return Ok(new { status = 200, data = "Answer submitted successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception is : {ex.Message}");
+                return Ok(new { status = 400, data = "something went wrong" });
+            }
+        }
+
+        [HttpGet("FinishExam")]
+        public async Task<IActionResult> FinishExam(int examId)
+        {
+            var userId = getUserId();
+            if(userId == -1)
+            {
+                return Ok(new { status = 400, data = "User not found" });
+            }
+
+            var userExam = _userExamRepository.FindBy(ue => ue.userId == userId && ue.examId == examId).FirstOrDefault();
+            userExam.userFinished = true;
+            userExam.currentQuestionId = -1;
+            _userExamRepository.Update(userExam);
+            await _userExamRepository.SaveChangesAsync();
+            return Ok(new { status = 200, data = "Exam Finished Successfully" });
+        }
+
+        [HttpGet("GetExamResults")]
+        public async Task<IActionResult> GetExamResults(int examId)
+        {
+            var userId = getUserId();
+            if(userId == -1)
+                return Ok(new { status = 400, data = "User not found" });
+
+            var result = await _examSubmissionsRepository.GetExamResults(new DtoGetExamResults
+            {
+                examId = examId,
+                userId = userId
+            });
+
+            return Ok(new { status = 200, data = result });
+        }
+
+        [HttpGet("RemoveQuestion")]
+        public async Task<IActionResult> RemoveQuestion(int questionId)
+        {
+            try
+            {
+                var question = await _questionRepository.GetByIdAsync(questionId);
+                if (question != null)
+                {
+                    _questionRepository.Delete(question);
+                    await _questionRepository.SaveChangesAsync();
+                }
+
+                return Ok(new { status = 200, data = "Question Removed Successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception is : {ex.Message}");
+                return Ok(new { status = 400, data = "something went wrong" });
+            }
+        }
+        #endregion
+
+
+        private int getUserId()
+        {
+            if (string.IsNullOrEmpty(User.FindFirst("id")?.Value))
+                return -1;
+
+            var userId = int.Parse(User.FindFirst("id")?.Value);
+
+            var user = _userRepository.FindBy(x => x.id == userId && !x.isDeleted).FirstOrDefault();
+            if (user == null)
+                return -1;
+
+            return userId;
+        }
     }
 }

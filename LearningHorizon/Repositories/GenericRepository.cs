@@ -16,6 +16,11 @@ namespace LearningHorizon.Repositories
             _context = context;
         }
 
+        public void Add(T entity)
+        {
+            _context.Set<T>().Add(entity);
+        }
+
         public async Task<T> AddAsync(T entity)
         {
             await _context.Set<T>().AddAsync(entity);

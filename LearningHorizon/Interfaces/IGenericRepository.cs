@@ -8,6 +8,7 @@ namespace LearningHorizon.Interfaces
         Task<ICollection<T>> GetAllAsync();
         Task SaveChangesAsync();
         Task<T> AddAsync(T entity);
+        void Add(T entity);
         Task AddRangeAsync(ICollection<T> entities);
         Task UpdateAsync(T entity);
         void Update(T entity);

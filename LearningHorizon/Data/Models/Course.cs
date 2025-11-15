@@ -24,5 +24,6 @@ namespace LearningHorizon.Data.Models
         public virtual ICollection<User> UsersPurchased { get; set; } = new HashSet<User>();
 
         public virtual ICollection<Lesson> Lessons { get; set; } = new HashSet<Lesson>();
+        public virtual ICollection<Exam> Exams { get; set; } = new HashSet<Exam>();
     }
 }

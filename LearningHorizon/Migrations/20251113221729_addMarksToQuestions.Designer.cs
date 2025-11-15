@@ -4,6 +4,7 @@ using LearningHorizon.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,16 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningHorizon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251113221729_addMarksToQuestions")]
+    partial class addMarksToQuestions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.7")
-                .HasAnnotation("Proxies:ChangeTracking", false)
-                .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -177,45 +177,6 @@ namespace LearningHorizon.Migrations
                     b.HasIndex("courseId");
 
                     b.ToTable("Exams");
-                });
-
-            modelBuilder.Entity("LearningHorizon.Data.Models.ExamSubmission", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<int>("answerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("examId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("isCorrect")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("quesionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("submissionTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("userId")
-                        .HasColumnType("int");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("answerId");
-
-                    b.HasIndex("examId");
-
-                    b.HasIndex("quesionId");
-
-                    b.HasIndex("userId");
-
-                    b.ToTable("ExamSubmissions");
                 });
 
             modelBuilder.Entity("LearningHorizon.Data.Models.Lesson", b =>
@@ -501,35 +462,6 @@ namespace LearningHorizon.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("LearningHorizon.Data.Models.UserExam", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<int?>("currentQuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("examId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("userFinished")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("userId")
-                        .HasColumnType("int");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("examId");
-
-                    b.HasIndex("userId");
-
-                    b.ToTable("UserExams");
-                });
-
             modelBuilder.Entity("MeetingUser", b =>
                 {
                     b.Property<int>("participatedMeetingsid")
@@ -597,41 +529,6 @@ namespace LearningHorizon.Migrations
                     b.Navigation("course");
                 });
 
-            modelBuilder.Entity("LearningHorizon.Data.Models.ExamSubmission", b =>
-                {
-                    b.HasOne("LearningHorizon.Data.Models.Answer", "answer")
-                        .WithMany("examSubmissions")
-                        .HasForeignKey("answerId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("LearningHorizon.Data.Models.Exam", "exam")
-                        .WithMany("examSubmissions")
-                        .HasForeignKey("examId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("LearningHorizon.Data.Models.Question", "question")
-                        .WithMany("examSubmissions")
-                        .HasForeignKey("quesionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("LearningHorizon.Data.Models.User", "user")
-                        .WithMany("examSubmissions")
-                        .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("answer");
-
-                    b.Navigation("exam");
-
-                    b.Navigation("question");
-
-                    b.Navigation("user");
-                });
-
             modelBuilder.Entity("LearningHorizon.Data.Models.Lesson", b =>
                 {
                     b.HasOne("LearningHorizon.Data.Models.Course", "course")
@@ -684,25 +581,6 @@ namespace LearningHorizon.Migrations
                     b.Navigation("exam");
                 });
 
-            modelBuilder.Entity("LearningHorizon.Data.Models.UserExam", b =>
-                {
-                    b.HasOne("LearningHorizon.Data.Models.Exam", "exam")
-                        .WithMany("participatedUsers")
-                        .HasForeignKey("examId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LearningHorizon.Data.Models.User", "user")
-                        .WithMany("participatedExams")
-                        .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("exam");
-
-                    b.Navigation("user");
-                });
-
             modelBuilder.Entity("MeetingUser", b =>
                 {
                     b.HasOne("LearningHorizon.Data.Models.Meeting", null)
@@ -718,11 +596,6 @@ namespace LearningHorizon.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("LearningHorizon.Data.Models.Answer", b =>
-                {
-                    b.Navigation("examSubmissions");
-                });
-
             modelBuilder.Entity("LearningHorizon.Data.Models.Course", b =>
                 {
                     b.Navigation("Exams");
@@ -732,27 +605,17 @@ namespace LearningHorizon.Migrations
 
             modelBuilder.Entity("LearningHorizon.Data.Models.Exam", b =>
                 {
-                    b.Navigation("examSubmissions");
-
-                    b.Navigation("participatedUsers");
-
                     b.Navigation("questions");
                 });
 
             modelBuilder.Entity("LearningHorizon.Data.Models.Question", b =>
                 {
                     b.Navigation("answers");
-
-                    b.Navigation("examSubmissions");
                 });
 
             modelBuilder.Entity("LearningHorizon.Data.Models.User", b =>
                 {
-                    b.Navigation("examSubmissions");
-
                     b.Navigation("hostedMeetings");
-
-                    b.Navigation("participatedExams");
                 });
 #pragma warning restore 612, 618
         }

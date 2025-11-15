@@ -18,6 +18,6 @@ namespace LearningHorizon.Data.Models
         // Navigation properties
         [Required]
         public int courseId { get; set; }
-        public Course course { get; set; }
+        public virtual Course course { get; set; }
     }
 }

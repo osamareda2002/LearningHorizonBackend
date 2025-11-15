@@ -14,7 +14,7 @@
 
 
         // Navigation property
-        public User user { get; set; }
-        public Course course { get; set; }
+        public virtual User user { get; set; }
+        public virtual Course course { get; set; }
     }
 }

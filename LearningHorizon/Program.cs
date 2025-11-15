@@ -44,7 +44,8 @@ builder.Services.AddSwaggerGen();
 
 // connect to the database
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseLazyLoadingProxies()
+        .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 //Dependency Injection for Repositories
@@ -57,6 +58,11 @@ builder.Services.AddTransient<ISuggestRepository,SuggestRepository>();
 builder.Services.AddTransient<IOrderRepository,OrderRepository>();
 builder.Services.AddTransient<IBookRepository,BookRepository>();
 builder.Services.AddTransient<IMeetingRepository,MeetingRepository>();
+builder.Services.AddTransient<IExamRepository, ExamRepository>();
+builder.Services.AddTransient<IQuestionRepository, QuestionRepository>();
+builder.Services.AddTransient<IAnswerRepository, AnswerRepository>();
+builder.Services.AddTransient<IUserExamRepository, UserExamRepository>();
+builder.Services.AddTransient<IExamSubmissionsRepository, ExamSubmissionsRepository>();
 
 builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();
