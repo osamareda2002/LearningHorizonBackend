@@ -872,7 +872,7 @@ namespace LearningHorizon.Controllers
                     if (callbackData.success)
                     {
                         await _userRepository.AddPurchasedCourse(order.courseId, order.userId);
-                        return Redirect($"http://localhost:4200/material");
+                        return Redirect($"https://learning-horizon-88ece.web.app/material");
                     }
                     return Ok(new { status = 400, message = "Operation Failed" });
                 }

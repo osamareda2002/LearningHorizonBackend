@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:63435", "http://localhost:4200", "https://localhost:4200", "https://learning-horizon.net", "https://learninghorizon.netlify.app", "https://learning-horizon-angular.vercel.app")
+            policy.WithOrigins("https://learning-horizon-88ece.web.app", "http://localhost:3000", "http://localhost:63435", "http://localhost:4200", "https://localhost:4200", "https://learning-horizon.net", "https://learninghorizon.netlify.app", "https://learning-horizon-angular.vercel.app")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
