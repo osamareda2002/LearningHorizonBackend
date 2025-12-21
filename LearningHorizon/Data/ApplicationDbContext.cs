@@ -22,7 +22,8 @@ namespace LearningHorizon.Data
         public DbSet<Answer> Answers { get; set; }
         public DbSet<UserExam> UserExams { get; set; }
         public DbSet<ExamSubmission> ExamSubmissions { get; set; }
-
+        public DbSet<LessonExercise> LessonExercises { get; set; }
+        public DbSet<LessonExerciseAnswer> LessonExerciseAnswers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -105,6 +106,17 @@ namespace LearningHorizon.Data
                 .WithMany(a => a.examSubmissions)
                 .HasForeignKey(es => es.answerId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+
+            modelBuilder.Entity<LessonExercise>()
+                .HasOne(le => le.lesson)
+                .WithMany(l => l.lessonExercises)
+                .HasForeignKey(le => le.lessonId);
+
+            modelBuilder.Entity<LessonExerciseAnswer>()
+                .HasOne(lea => lea.lessonExercise)
+                .WithMany(le => le.lessonExerciseAnswers)
+                .HasForeignKey(lea => lea.lessonExerciseId);
 
         }
     }

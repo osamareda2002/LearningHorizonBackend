@@ -9,8 +9,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
 using MimeKit;
 using System;
+using System.IO;
 using System.Net.NetworkInformation;
 using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -34,11 +36,13 @@ namespace LearningHorizon.Controllers
         private readonly IAnswerRepository _answerRepository;
         private readonly IUserExamRepository _userExamRepository;
         private readonly IExamSubmissionsRepository _examSubmissionsRepository;
+        private readonly ILessonExerciseRepository _lessonExerciseRepository;
+        private readonly ILessonExerciseAnswerRepository _lessonExerciseAnswerRepository;
         private readonly JwtTokenService _tokenService;
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
         private string baseUrl => $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
-        public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository, IMeetingRepository meetingRepository, IExamRepository examRepository, IQuestionRepository questionRepository, IAnswerRepository answerRepository, IExamSubmissionsRepository examSubmissionsRepository, IUserExamRepository userExamRepository)
+        public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository, IMeetingRepository meetingRepository, IExamRepository examRepository, IQuestionRepository questionRepository, IAnswerRepository answerRepository, IExamSubmissionsRepository examSubmissionsRepository, IUserExamRepository userExamRepository, ILessonExerciseRepository lessonExerciseRepository, ILessonExerciseAnswerRepository lessonExerciseAnswerRepository)
         {
             _userRepository = userRepository;
             _courseRepository = courseRepository;
@@ -56,6 +60,8 @@ namespace LearningHorizon.Controllers
             _answerRepository = answerRepository;
             _examSubmissionsRepository = examSubmissionsRepository;
             _userExamRepository = userExamRepository;
+            _lessonExerciseRepository = lessonExerciseRepository;
+            _lessonExerciseAnswerRepository = lessonExerciseAnswerRepository;
         }
 
         #region User
@@ -540,6 +546,51 @@ namespace LearningHorizon.Controllers
             };
 
             await _lessonRepository.AddAsync(lesson);
+
+            #region add mcq
+            foreach (var mcq in dtoLesson.lessonExercises)
+            {
+                var exercise = new LessonExercise
+                {
+                    lessonId = lesson.id,
+                    questionText = mcq.questionText,
+                    explanation = mcq.explanation,
+                };
+                await _lessonExerciseRepository.AddAsync(exercise);
+
+                string ImagePath = "";
+                if (mcq.image != null)
+                {
+                    string currentDirectory = Directory.GetCurrentDirectory();
+                    ImagePath = Path.Combine(currentDirectory, "Media", "Images", "LessonExercises", $"{exercise.id}_{mcq.image.FileName}");
+
+
+                    string directoryName = Path.GetDirectoryName(ImagePath);
+                    if (!Directory.Exists(directoryName))
+                        Directory.CreateDirectory(directoryName);
+
+                    using (FileStream stream = new FileStream(ImagePath, FileMode.Create))
+                        await mcq.image.CopyToAsync((Stream)stream);
+
+                    exercise.imageLink = ImagePath.IsNullOrEmpty() ? null : ImagePath;
+                    await _lessonExerciseRepository.UpdateAsync(exercise);
+                }
+
+                foreach (var answer in mcq.answers)
+                {
+                    var answerObj = new LessonExerciseAnswer
+                    {
+                        answerText = answer.answerText,
+                        isCorrect = answer.isCorrect,
+                        lessonExerciseId = exercise.id
+                    };
+
+                    _lessonExerciseAnswerRepository.Add(answerObj);
+                }
+                await _lessonExerciseAnswerRepository.SaveChangesAsync();
+            }
+            #endregion
+
             var result = await _lessonRepository.SelectLessonById(lesson.id);
             return Ok(result);
         }
@@ -872,7 +923,7 @@ namespace LearningHorizon.Controllers
                     if (callbackData.success)
                     {
                         await _userRepository.AddPurchasedCourse(order.courseId, order.userId);
-                        return Redirect($"https://learning-horizon-88ece.web.app/material");
+                        return Redirect($"https://learning-horizon-angular.vercel.app/material");
                     }
                     return Ok(new { status = 400, message = "Operation Failed" });
                 }
@@ -1209,6 +1260,10 @@ namespace LearningHorizon.Controllers
         }
         #endregion
 
+
+        #region Lesson Excercise
+
+        #endregion
 
         private int getUserId()
         {

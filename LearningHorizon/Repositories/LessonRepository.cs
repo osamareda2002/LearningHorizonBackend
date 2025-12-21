@@ -61,7 +61,20 @@ namespace LearningHorizon.Repositories
                     courseId = l.courseId,
                     duration = l.duration ?? 0,
                     durationInMinutes = (int)Math.Round(l.duration.Value / 60.0),
-                    arrange = l.lessonOrder
+                    arrange = l.lessonOrder,
+                    mcq = l.lessonExercises.Select(ex => new DtoGetLessonExercise
+                    {
+                        id = ex.id,
+                        questionText = ex.questionText,
+                        explanation = ex.explanation,
+                        imageLink = $"{baseUrl}/Media/Images/LessonExercises/{Path.GetFileName(ex.imageLink)}",
+                        answers = ex.lessonExerciseAnswers.Select(ans => new DtoGetExerciseAnswer
+                        {
+                            id = ans.id,
+                            answerText = ans.answerText,
+                            isCorrect = ans.isCorrect
+                        }).OrderBy(x => x.id).ToList()
+                    }).OrderBy(x => x.id).ToList()
                 }).OrderBy(x => x.arrange).ToListAsync();
             return lessons;
         }

@@ -19,5 +19,6 @@ namespace LearningHorizon.Data.Models
         [Required]
         public int courseId { get; set; }
         public virtual Course course { get; set; }
+        public virtual ICollection<LessonExercise> lessonExercises { get; set; } = new HashSet<LessonExercise>();
     }
 }

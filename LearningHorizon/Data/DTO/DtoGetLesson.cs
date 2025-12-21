@@ -13,5 +13,23 @@ namespace LearningHorizon.Data.DTO
         public int? durationInMinutes { get; set; }
         public int courseId { get; set; }
         public string courseTitle { get; set; }
+        public List<DtoGetLessonExercise> mcq { get; set; }
+    }
+
+    public class DtoGetLessonExercise
+    {
+        public int id { get; set; }
+        public string? questionText { get; set; }
+        public string? explanation { get; set; }
+        public string? imageLink { get; set; }
+        public List<DtoGetExerciseAnswer> answers { get; set; }
+    }
+
+
+    public class DtoGetExerciseAnswer
+    {
+        public int id { get; set; }
+        public string? answerText { get; set; }
+        public bool isCorrect { get; set; }
     }
 }
