@@ -923,7 +923,7 @@ namespace LearningHorizon.Controllers
                     if (callbackData.success)
                     {
                         await _userRepository.AddPurchasedCourse(order.courseId, order.userId);
-                        return Redirect($"https://learning-horizon-angular.vercel.app/material");
+                        return Redirect($"https://www.learning-horizon.com/material");
                     }
                     return Ok(new { status = 400, message = "Operation Failed" });
                 }

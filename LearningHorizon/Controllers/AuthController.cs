@@ -125,7 +125,7 @@ namespace LearningHorizon.Controllers
             user.resetTokenExpiry = expiryDate;
 
 
-            var resetLink = $"{_configuration["Deployment:FrontEnd"]}reset-password?token={resetToken}";
+            var resetLink = $"{_configuration["Production:FrontEnd"]}reset-password?token={resetToken}";
 
             string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Services", "PasswordResetTemplate2.html");
 
