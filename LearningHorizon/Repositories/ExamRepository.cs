@@ -19,8 +19,10 @@ namespace LearningHorizon.Repositories
         {
             var exams = await (from q in _context.Exams.AsNoTracking()
                                let userExam = _context.UserExams.Where(x => x.userId == userId && x.examId == q.id).FirstOrDefault()
-                               where q.startTime.AddMinutes(q.durationInMinutes) >= DateTime.UtcNow.AddHours(2) 
-                                  && (userExam != null ? userExam.currentQuestionId != -1 : true)
+                               where q.isDeleted != true && 
+                                     q.startTime.AddMinutes(q.durationInMinutes) >= DateTime.UtcNow.AddHours(2) && 
+                                     (userExam != null ? userExam.currentQuestionId != -1 : true)
+
                                select new DtoGetExam
                                {
                                    id = q.id,
@@ -37,6 +39,7 @@ namespace LearningHorizon.Repositories
         public async Task<List<DtoGetExam>> GetAllExams()
         {
             var exams = await (from q in _context.Exams.AsNoTracking()
+                               where q.isDeleted != true
                                select new DtoGetExam
                                {
                                    id = q.id,
@@ -80,7 +83,7 @@ namespace LearningHorizon.Repositories
         public async Task<DtoGetExamQuestions> GetExamQuestions(int examId)
         {   
             var result = await (from q in _context.Exams.AsNoTracking()
-                                where q.id == examId
+                                where q.id == examId && q.isDeleted != true
                                 select new DtoGetExamQuestions
                                 {
                                     examTitle = q.title,

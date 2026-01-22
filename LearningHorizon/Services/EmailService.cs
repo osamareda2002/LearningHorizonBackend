@@ -9,8 +9,8 @@ namespace LearningHorizon.Services
 {
     public static class EmailService
     {
-        private static readonly string SenderEmail = "osama.reda.abdelghany@gmail.com";
-        private static readonly string SenderPassword = "mifw vwzg lktc avtm";
+        private static readonly string SenderEmail = "learninghorizon2026@gmail.com";
+        private static readonly string SenderPassword = "brum iytx cahe frpy";
         private static readonly string SmtpHost = "smtp.gmail.com";
         //private static readonly string SenderEmail = "noreply@learning-horizon.net";
         //private static readonly string SenderPassword = ";M=X!a0b";

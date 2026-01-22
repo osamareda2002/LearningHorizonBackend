@@ -10,6 +10,7 @@ namespace LearningHorizon.Data.Models
         public DateTime startTime { get; set; }
         public int durationInMinutes { get; set; }
         public int courseId { get; set; }
+        public bool isDeleted { get; set; }
 
         // Navigation property
         public virtual Course course { get; set; }

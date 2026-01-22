@@ -1078,7 +1078,9 @@ namespace LearningHorizon.Controllers
             var exam = await _examRepository.GetByIdAsync(id);
             if (exam == null)
                 return Ok(new { status = 400, data = "something went wrong" });
-            _examRepository.Delete(exam);
+
+            exam.isDeleted = true;
+            _examRepository.Update(exam);
             await _examRepository.SaveChangesAsync();
             return Ok(new { status = 200, data = "done" });
         }
