@@ -38,11 +38,13 @@ namespace LearningHorizon.Controllers
         private readonly IExamSubmissionsRepository _examSubmissionsRepository;
         private readonly ILessonExerciseRepository _lessonExerciseRepository;
         private readonly ILessonExerciseAnswerRepository _lessonExerciseAnswerRepository;
+        private readonly ICourseCategoryRepository _courseCategoryRepository;
+        private readonly IInstructorRepository _instructorRepository;
         private readonly JwtTokenService _tokenService;
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
         private string baseUrl => $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
-        public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository, IMeetingRepository meetingRepository, IExamRepository examRepository, IQuestionRepository questionRepository, IAnswerRepository answerRepository, IExamSubmissionsRepository examSubmissionsRepository, IUserExamRepository userExamRepository, ILessonExerciseRepository lessonExerciseRepository, ILessonExerciseAnswerRepository lessonExerciseAnswerRepository)
+        public HorizonController(IUserRepository userRepository, ICourseRepository courseRepository, ILessonRepository lessonRepository, ISliderRepository sliderRepository, ISuggestRepository suggestRepository, JwtTokenService tokenService, IOrderRepository orderRepository, IConfiguration configuration, IMemoryCache cache, IBookRepository bookRepository, IMeetingRepository meetingRepository, IExamRepository examRepository, IQuestionRepository questionRepository, IAnswerRepository answerRepository, IExamSubmissionsRepository examSubmissionsRepository, IUserExamRepository userExamRepository, ILessonExerciseRepository lessonExerciseRepository, ILessonExerciseAnswerRepository lessonExerciseAnswerRepository, ICourseCategoryRepository courseCategoryRepository, IInstructorRepository instructorRepository)
         {
             _userRepository = userRepository;
             _courseRepository = courseRepository;
@@ -62,6 +64,8 @@ namespace LearningHorizon.Controllers
             _userExamRepository = userExamRepository;
             _lessonExerciseRepository = lessonExerciseRepository;
             _lessonExerciseAnswerRepository = lessonExerciseAnswerRepository;
+            _courseCategoryRepository = courseCategoryRepository;
+            _instructorRepository = instructorRepository;
         }
 
         #region User
@@ -395,6 +399,7 @@ namespace LearningHorizon.Controllers
                 price = (decimal)dtoCourse.coursePrice,
                 path = folderPath,
                 imagePath = courseImagePath,
+                categoryId = dtoCourse.categoryId
             };
             var addedCourse = await _courseRepository.AddAsync(course);
 
@@ -442,6 +447,7 @@ namespace LearningHorizon.Controllers
                 }
                 course.imagePath = courseImagePath;
             }
+            if (dtoCourse.categoryId != null && dtoCourse.categoryId != 0) course.categoryId = dtoCourse.categoryId;
 
             await _courseRepository.UpdateAsync(course);
             var result = await _courseRepository.SelectCourseById(course.id);
@@ -481,6 +487,55 @@ namespace LearningHorizon.Controllers
             // Remove Lessons 
 
 
+        }
+
+        #endregion
+
+
+        #region Category
+
+        [HttpGet("GetAllCategories")]
+        public async Task<IActionResult> GetAllCategories()
+        {
+            var categories = await _courseCategoryRepository.GetAllCategories(baseUrl);
+            return Ok(categories);
+        }
+
+        [HttpPost("AddCategory")]
+        public async Task<IActionResult> AddCategory([FromForm] DtoAddEditCategory dto)
+        {
+            var categories = await _courseCategoryRepository.AddCategory(dto,baseUrl);
+            return Ok(categories);
+        }
+
+        [HttpPost("EditCategory")]
+        public async Task<IActionResult> EditCategory([FromForm] DtoAddEditCategory dto)
+        {
+            bool isExist = _courseCategoryRepository.FindBy(x => x.id == dto.id).AsQueryable().Any();
+            if (isExist)
+            {
+                var categories = await _courseCategoryRepository.EditCategory(dto, baseUrl);
+                return Ok(new { status = 200, data = categories });
+            }
+            else
+            {
+                return Ok(new { status = 400 });
+            }
+        }
+
+        [HttpGet("DeleteCategory")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            bool isExist = _courseCategoryRepository.FindBy(x => x.id == id).AsQueryable().Any();
+            if (isExist)
+            {
+                var categories = await _courseCategoryRepository.DeleteCategory(id, baseUrl);
+                return Ok(new { status = 200, data = categories });
+            }
+            else
+            {
+                return Ok(new { status = 400 });
+            }
         }
 
         #endregion
@@ -1039,6 +1094,18 @@ namespace LearningHorizon.Controllers
             return Ok(new { status = 200, data = "Meeting updated successfully" });
         }
 
+        [HttpGet("DeleteMeeting")]
+        public async Task<IActionResult> DeleteMeeting(int id)
+        {
+            var meeting = await _meetingRepository.GetByIdAsync(id);
+            if (meeting != null)
+            {
+                meeting.isDeleted = true;
+                await _meetingRepository.UpdateAsync(meeting);
+            }
+            return Ok();
+        }
+
         #endregion
 
 
@@ -1263,9 +1330,133 @@ namespace LearningHorizon.Controllers
         #endregion
 
 
-        #region Lesson Excercise
+        #region Instructors
+        [HttpGet("GetAllInstructors")]
+        public async Task<IActionResult> GetAllInstructors()
+        {
+            var dbInstructors = await _instructorRepository.GetAllAsync();
 
+            var instructors = dbInstructors.Select(x => new
+            {
+                id = x.id,
+                name = x.name,
+                specialty = x.specialty,
+                description = x.description,
+                expertise = x.expertise,
+                imageUrl = $"{baseUrl}/Media/Images/Instructors/{Path.GetFileName(x.imageUrl)}",
+                facebookUrl = x.facebookUrl,
+                whatsappUrl = x.whatsappUrl,
+                instgramUrl = x.instgramUrl,
+            }).OrderByDescending(x => x.id);
+
+            return Ok(new { status = 200, data = instructors});
+        }
+
+        [HttpPost("AddNewInstructor")]
+        public async Task<IActionResult> AddNewInstructor([FromForm] DtoInstructorAddEdit dto)
+        {
+            string imageUrl = "";
+            if (dto.image != null)
+            {
+                string currentDirectory = Directory.GetCurrentDirectory();
+                string instructorImagePath = Path.Combine(currentDirectory, "Media", "Images", "Instructors", dto.image.FileName);
+
+                try
+                {
+                    string directoryName = Path.GetDirectoryName(instructorImagePath);
+                    if (!Directory.Exists(directoryName))
+                        Directory.CreateDirectory(directoryName);
+                    using (FileStream stream = new FileStream(instructorImagePath, FileMode.Create))
+                        await dto.image.CopyToAsync((Stream)stream);
+
+                    imageUrl = instructorImagePath; 
+                }
+                catch (Exception ex)
+                {
+                    return Ok(new { status = 400, data = ex.Message });
+                }
+            }
+
+
+            var instructor = new Instructor
+            {
+                name = dto.name,
+                specialty = dto.specialty,
+                description = dto.description,
+                expertise = dto.expertise,
+                imageUrl = imageUrl,
+                facebookUrl = dto.facebookUrl ?? "",
+                whatsappUrl = dto.whatsappUrl ?? "",
+                instgramUrl = dto.instgramUrl ?? ""
+            };
+
+            await _instructorRepository.AddAsync(instructor);
+
+            return Ok(new { status = 200, data = instructor });
+        }
+
+        [HttpPost("EditInstructor")]
+        public async Task<IActionResult> EditInstructor([FromForm] DtoInstructorAddEdit dto)
+        {
+            if (dto.id == 0 || dto.id == null)
+                return Ok(new { status = 400 });
+
+            var instructor = await _instructorRepository.GetByIdAsync((int)dto.id);
+            if (instructor == null)
+                return Ok(new { status = 400 });
+
+            if (dto.name != "" && !dto.name.IsNullOrEmpty()) instructor.name = dto.name;
+            if (dto.specialty != "" && !dto.specialty.IsNullOrEmpty()) instructor.specialty = dto.specialty;
+            if (dto.description != "" && !dto.description.IsNullOrEmpty()) instructor.description = dto.description;
+            if (dto.expertise != "" && !dto.expertise.IsNullOrEmpty()) instructor.expertise = dto.expertise;
+            if (dto.facebookUrl != "" && !dto.facebookUrl.IsNullOrEmpty()) instructor.facebookUrl = dto.facebookUrl;
+            if (dto.whatsappUrl != "" && !dto.whatsappUrl.IsNullOrEmpty()) instructor.whatsappUrl = dto.whatsappUrl;
+            if (dto.instgramUrl != "" && !dto.instgramUrl.IsNullOrEmpty()) instructor.instgramUrl = dto.instgramUrl;
+               
+            if (dto.image != null)
+            {
+                string imageUrl = "";
+
+                string currentDirectory = Directory.GetCurrentDirectory();
+                string instructorImagePath = Path.Combine(currentDirectory, "Media", "Images", "Instructors", dto.image.FileName);
+
+                try
+                {
+                    string directoryName = Path.GetDirectoryName(instructorImagePath);
+                    if (!Directory.Exists(directoryName))
+                        Directory.CreateDirectory(directoryName);
+                    using (FileStream stream = new FileStream(instructorImagePath, FileMode.Create))
+                        await dto.image.CopyToAsync((Stream)stream);
+
+                    imageUrl = instructorImagePath;
+                }
+                catch (Exception ex)
+                {
+                    return Ok(new { status = 400, data = ex.Message });
+                }
+
+                instructor.imageUrl = imageUrl;
+            }
+
+            await _instructorRepository.UpdateAsync(instructor);
+
+            return Ok(new { status = 200, data = instructor });
+        }
+
+        [HttpGet("DeleteInstructor")]
+        public async Task<IActionResult> DeleteInstructor(int id)
+        {
+            var instructor = await _instructorRepository.GetByIdAsync(id);
+            if (instructor == null)
+                return Ok(new { status = 200 });
+            
+            await _instructorRepository.DeleteAsync(instructor);
+
+            var instructors = await _instructorRepository.GetAllAsync();
+            return Ok(new { status = 200, data = instructors });
+        }
         #endregion
+
 
         private int getUserId()
         {

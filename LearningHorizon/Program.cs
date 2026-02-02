@@ -65,6 +65,8 @@ builder.Services.AddTransient<IUserExamRepository, UserExamRepository>();
 builder.Services.AddTransient<IExamSubmissionsRepository, ExamSubmissionsRepository>();
 builder.Services.AddTransient<ILessonExerciseRepository, LessonExerciseRepository>();
 builder.Services.AddTransient<ILessonExerciseAnswerRepository, LessonExerciseAnswerRepository>();
+builder.Services.AddTransient<ICourseCategoryRepository, CourseCategoryRepository>();
+builder.Services.AddTransient<IInstructorRepository, InstructorRepository>();
 
 builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();

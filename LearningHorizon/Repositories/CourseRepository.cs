@@ -27,7 +27,8 @@ namespace LearningHorizon.Repositories
                     coursePath = c.path,
                     courseImagePath = $"{baseUrl}/Media/Images/CourseImages/{Path.GetFileName(c.imagePath)}",
                     lessonsCount = c.Lessons.Count,
-                    courseDurationInSeconds = c.Lessons.Sum(l => l.duration ?? 0)
+                    courseDurationInSeconds = c.Lessons.Sum(l => l.duration ?? 0),
+                    courseCategory = c.category != null ? c.category.title : ""
                 }).OrderByDescending(x => x.courseId).ToListAsync();
             return courses;
         }
@@ -43,7 +44,8 @@ namespace LearningHorizon.Repositories
                     coursePrice = c.price,
                     coursePath = c.path,
                     courseImagePath = c.imagePath,
-                    courseDurationInSeconds = c.Lessons.Sum(l => l.duration ?? 0)
+                    courseDurationInSeconds = c.Lessons.Sum(l => l.duration ?? 0),
+                    courseCategory = c.category != null ? c.category.title : "",
                 }).FirstOrDefaultAsync();
             return course;
         }

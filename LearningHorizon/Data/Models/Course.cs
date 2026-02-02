@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using LearningHorizon.Repositories;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LearningHorizon.Data.Models
@@ -18,8 +19,10 @@ namespace LearningHorizon.Data.Models
         public string path { get; set; }
         public string imagePath { get; set; }
         public bool isDeleted { get; set; } = false;
+        public int? categoryId { get; set; }
 
         // Navigation properties
+        public virtual CourseCategory category { get; set; }
         public virtual ICollection<User> UsersShowed { get; set; } = new HashSet<User>();
         public virtual ICollection<User> UsersPurchased { get; set; } = new HashSet<User>();
 

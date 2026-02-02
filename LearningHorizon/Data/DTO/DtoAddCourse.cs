@@ -6,6 +6,7 @@
         public string courseTitle { get; set; }
         public string courseCreator { get; set; }
         public decimal? coursePrice { get; set; }
+        public int? categoryId { get; set; }
         public IFormFile? courseImage { get; set; }
     }
 }

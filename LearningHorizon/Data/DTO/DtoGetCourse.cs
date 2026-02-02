@@ -12,5 +12,6 @@ namespace LearningHorizon.Data.DTO
         public string courseImagePath { get; set; }
         public int courseDurationInSeconds { get; set; }
         public int lessonsCount { get; set; }
+        public string? courseCategory { get; set; }
     }
 }

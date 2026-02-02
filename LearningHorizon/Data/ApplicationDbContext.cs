@@ -24,6 +24,8 @@ namespace LearningHorizon.Data
         public DbSet<ExamSubmission> ExamSubmissions { get; set; }
         public DbSet<LessonExercise> LessonExercises { get; set; }
         public DbSet<LessonExerciseAnswer> LessonExerciseAnswers { get; set; }
+        public DbSet<CourseCategory> CourseCategories { get; set; }
+        public DbSet<Instructor> Instructors { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +48,12 @@ namespace LearningHorizon.Data
             modelBuilder.Entity<User>()
                 .Navigation(u => u.CoursesPurchased)
                 .AutoInclude();
+
+            modelBuilder.Entity<Course>()
+                .HasOne(c => c.category)
+                .WithMany(cc => cc.courses)
+                .HasForeignKey(c => c.categoryId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Meeting>()
                 .HasOne(m => m.host)
