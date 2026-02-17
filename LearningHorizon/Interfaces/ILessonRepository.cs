@@ -1,5 +1,6 @@
 ﻿using LearningHorizon.Data.DTO;
 using LearningHorizon.Data.Models;
+using LearningHorizon.Repositories;
 
 namespace LearningHorizon.Interfaces
 {
@@ -9,5 +10,6 @@ namespace LearningHorizon.Interfaces
         Task<List<DtoGetLesson>> SelectAllLessons(string baseUrl);
         Task<List<DtoGetLesson>> SelectLessonsByCourseId(int courseId, string baseUrl);
         Task RemoveCourseLessons(int courseId);
+        Task<BunnyUploadToken> GetLessonAddToken(string lessonTitle);
     }
 }

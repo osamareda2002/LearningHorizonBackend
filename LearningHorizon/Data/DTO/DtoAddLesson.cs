@@ -7,7 +7,9 @@
         public int courseId { get; set; }
         public int durationInSeconds { get; set; }
         public int lessonOrder { get; set; }
-        public IFormFile lessonFile { get; set; }
+        public string guid { get; set; }
+        public int libraryId { get; set; }
+        public IFormFile? lessonFile { get; set; } = null;
         public List<DtoLessonExercise> lessonExercises { get; set; }
     }
 

@@ -14,6 +14,9 @@ namespace LearningHorizon.Data.Models
         public bool isDeleted { get; set; } = false;
         public int? duration { get; set; }
         public int lessonOrder { get; set; }
+        public string guid { get; set; }
+        public int libraryId { get; set; }
+
 
         // Navigation properties
         [Required]

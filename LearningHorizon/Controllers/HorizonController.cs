@@ -358,6 +358,14 @@ namespace LearningHorizon.Controllers
             return Ok(course);
         }
 
+        [HttpGet]
+        [Route("GetCourseByCategory")]
+        public async Task<IActionResult> GetCourseByCategory(int categoryId)
+        {
+            var result = await _courseRepository.SelectCoursesByCategory(categoryId, baseUrl);
+            return Ok(result);
+        }
+
         [Authorize]
         [HttpPost]
         [Route("AddNewCourse")]
@@ -571,33 +579,29 @@ namespace LearningHorizon.Controllers
             return Ok(lessons);
         }
 
-        [HttpPost]
-        [RequestSizeLimit(10737418240 /*0x0280000000*/)]
-        [Route("AddLesson")]
-        public async Task<IActionResult> AddLesson([FromForm] DtoAddLesson dtoLesson)
+        [HttpGet("GetLessonAddToken")]
+        public async Task<IActionResult> GetLessonAddToken(int courseId, string lessonTitle)
         {
-            var course = await _courseRepository.GetByIdAsync(dtoLesson.courseId);
+            var course = await _courseRepository.GetByIdAsync(courseId);
             if (course == null)
                 return NotFound("No course with this id");
 
-            string str = Path.Combine(Directory.GetCurrentDirectory(), "Media", "Courses", course.title);
-            if (!Directory.Exists(str))
-                Directory.CreateDirectory(str);
+            var result = await _lessonRepository.GetLessonAddToken(lessonTitle);
+            return Ok(new { status = 200, data = result });
+        }
 
-            string path = Path.Combine(str, dtoLesson.lessonFile.FileName);
-            if (System.IO.File.Exists(path))
-                System.IO.File.Delete(path);
-            using (FileStream stream = new FileStream(path, FileMode.Create))
-                await dtoLesson.lessonFile.CopyToAsync((Stream)stream);
-
-            Lesson lesson = new Lesson
+        [HttpPost("AddLesson")]
+        public async Task<IActionResult> AddLesson([FromBody] DtoAddLesson dtoLesson)
+        {
+            var lesson = new Lesson
             {
                 title = dtoLesson.title,
                 isFree = dtoLesson.isFree,
                 courseId = dtoLesson.courseId,
-                path = path,
                 duration = dtoLesson.durationInSeconds,
-                lessonOrder = dtoLesson.lessonOrder
+                lessonOrder = dtoLesson.lessonOrder,
+                guid = dtoLesson.guid,
+                libraryId = dtoLesson.libraryId
             };
 
             await _lessonRepository.AddAsync(lesson);
@@ -649,6 +653,85 @@ namespace LearningHorizon.Controllers
             var result = await _lessonRepository.SelectLessonById(lesson.id);
             return Ok(result);
         }
+
+        //[HttpPost]
+        //[RequestSizeLimit(10737418240 /*0x0280000000*/)]
+        //[Route("AddLesson")]
+        //public async Task<IActionResult> AddLesson([FromForm] DtoAddLesson dtoLesson)
+        //{
+        //    var course = await _courseRepository.GetByIdAsync(dtoLesson.courseId);
+        //    if (course == null)
+        //        return NotFound("No course with this id");
+
+        //    string str = Path.Combine(Directory.GetCurrentDirectory(), "Media", "Courses", course.title);
+        //    if (!Directory.Exists(str))
+        //        Directory.CreateDirectory(str);
+
+        //    string path = Path.Combine(str, dtoLesson.lessonFile.FileName);
+        //    if (System.IO.File.Exists(path))
+        //        System.IO.File.Delete(path);
+        //    using (FileStream stream = new FileStream(path, FileMode.Create))
+        //        await dtoLesson.lessonFile.CopyToAsync((Stream)stream);
+
+        //    Lesson lesson = new Lesson
+        //    {
+        //        title = dtoLesson.title,
+        //        isFree = dtoLesson.isFree,
+        //        courseId = dtoLesson.courseId,
+        //        path = path,
+        //        duration = dtoLesson.durationInSeconds,
+        //        lessonOrder = dtoLesson.lessonOrder
+        //    };
+
+        //    await _lessonRepository.AddAsync(lesson);
+
+        //    #region add mcq
+        //    foreach (var mcq in dtoLesson.lessonExercises)
+        //    {
+        //        var exercise = new LessonExercise
+        //        {
+        //            lessonId = lesson.id,
+        //            questionText = mcq.questionText,
+        //            explanation = mcq.explanation,
+        //        };
+        //        await _lessonExerciseRepository.AddAsync(exercise);
+
+        //        string ImagePath = "";
+        //        if (mcq.image != null)
+        //        {
+        //            string currentDirectory = Directory.GetCurrentDirectory();
+        //            ImagePath = Path.Combine(currentDirectory, "Media", "Images", "LessonExercises", $"{exercise.id}_{mcq.image.FileName}");
+
+
+        //            string directoryName = Path.GetDirectoryName(ImagePath);
+        //            if (!Directory.Exists(directoryName))
+        //                Directory.CreateDirectory(directoryName);
+
+        //            using (FileStream stream = new FileStream(ImagePath, FileMode.Create))
+        //                await mcq.image.CopyToAsync((Stream)stream);
+
+        //            exercise.imageLink = ImagePath.IsNullOrEmpty() ? null : ImagePath;
+        //            await _lessonExerciseRepository.UpdateAsync(exercise);
+        //        }
+
+        //        foreach (var answer in mcq.answers)
+        //        {
+        //            var answerObj = new LessonExerciseAnswer
+        //            {
+        //                answerText = answer.answerText,
+        //                isCorrect = answer.isCorrect,
+        //                lessonExerciseId = exercise.id
+        //            };
+
+        //            _lessonExerciseAnswerRepository.Add(answerObj);
+        //        }
+        //        await _lessonExerciseAnswerRepository.SaveChangesAsync();
+        //    }
+        //    #endregion
+
+        //    var result = await _lessonRepository.SelectLessonById(lesson.id);
+        //    return Ok(result);
+        //}
 
         [HttpPost]
         [RequestSizeLimit(10737418240 /*0x0280000000*/)]
