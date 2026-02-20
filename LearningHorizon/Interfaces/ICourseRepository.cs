@@ -8,5 +8,6 @@ namespace LearningHorizon.Interfaces
     {
         Task<List<DtoGetCourse>> SelectAllCourses(string baseUrl);
         Task<DtoGetCourse> SelectCourseById(int id);
+        Task<List<DtoGetCourse>> SelectCoursesByCategory(int categoryId, string baseUrl);
     }
 }

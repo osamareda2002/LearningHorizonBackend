@@ -83,5 +83,10 @@ namespace LearningHorizon.Repositories
             }
             return contentType;
         }
+
+        public string GetBunnyVideoUrl(int libraryId, string guid)
+        {
+            return $"https://iframe.mediadelivery.net/embed/${libraryId}/${guid}";
+        }
     }
 }
