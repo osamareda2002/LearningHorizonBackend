@@ -249,7 +249,7 @@ namespace LearningHorizon.Controllers
             if (!System.IO.File.Exists(filePath))
                 return NotFound("File not found");
 
-            var contentType = _bookRepository.GetContentType(filePath);
+            var contentType = MediaHelper.GetContentType(filePath);
             var fileInfo = new FileInfo(filePath);
             var fileLength = fileInfo.Length;
 
@@ -299,7 +299,7 @@ namespace LearningHorizon.Controllers
             if (!System.IO.File.Exists(filePath))
                 return NotFound("File not found");
 
-            var contentType = _bookRepository.GetContentType(filePath);
+            var contentType = MediaHelper.GetContentType(filePath);
             var fileInfo = new FileInfo(filePath);
             var fileLength = fileInfo.Length;
 
@@ -601,7 +601,8 @@ namespace LearningHorizon.Controllers
                 duration = dtoLesson.durationInSeconds,
                 lessonOrder = dtoLesson.lessonOrder,
                 guid = dtoLesson.guid,
-                libraryId = dtoLesson.libraryId
+                libraryId = dtoLesson.libraryId,
+                path = ""
             };
 
             await _lessonRepository.AddAsync(lesson);
@@ -1425,7 +1426,7 @@ namespace LearningHorizon.Controllers
                 name = x.name,
                 specialty = x.specialty,
                 description = x.description,
-                expertise = x.expertise,
+                expertise = x.expertise, 
                 imageUrl = $"{baseUrl}/Media/Images/Instructors/{Path.GetFileName(x.imageUrl)}",
                 facebookUrl = x.facebookUrl,
                 whatsappUrl = x.whatsappUrl,

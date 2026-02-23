@@ -15,8 +15,6 @@ namespace LearningHorizon.Interfaces
         void Delete(T entity);
         Task DeleteAsync(T entity);
         List<T> FindBy(Expression<Func<T, bool>> predicate);
-        string GetContentType(string path);
-        string GetBunnyVideoUrl(int libraryId, string guid);
 
 
     }

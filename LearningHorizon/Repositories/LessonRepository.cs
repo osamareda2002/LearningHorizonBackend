@@ -2,6 +2,7 @@
 using LearningHorizon.Data.DTO;
 using LearningHorizon.Data.Models;
 using LearningHorizon.Interfaces;
+using LearningHorizon.Services;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -14,11 +15,13 @@ namespace LearningHorizon.Repositories
     {
         private readonly ApplicationDbContext _context;
         private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
-        public LessonRepository(ApplicationDbContext context, HttpClient httpClient) : base(context)
+        public LessonRepository(ApplicationDbContext context, HttpClient httpClient, IConfiguration configuration) : base(context)
         {
             _context = context;
             _httpClient = httpClient;
+            _configuration = configuration;
         }
 
         public async Task<DtoGetLesson> SelectLessonById(int id)
@@ -29,7 +32,7 @@ namespace LearningHorizon.Repositories
                 {
                     id = l.id,
                     title = l.title,
-                    path = GetBunnyVideoUrl(l.libraryId,l.guid),
+                    path = MediaHelper.GetBunnyVideoUrl(l.libraryId,l.guid),
                     isFree = l.isFree,
                     courseId = l.courseId,
                     duration = l.duration ?? 0
@@ -43,7 +46,7 @@ namespace LearningHorizon.Repositories
                 {
                     id = l.id,
                     title = l.title,
-                    path = GetBunnyVideoUrl(l.libraryId,l.guid),
+                    path = MediaHelper.GetBunnyVideoUrl(l.libraryId,l.guid),
                     isFree = l.isFree,
                     courseId = l.courseId,
                     courseTitle = l.course.title,
@@ -61,7 +64,7 @@ namespace LearningHorizon.Repositories
                 {
                     id = l.id,
                     title = l.title,
-                    path = GetBunnyVideoUrl(l.libraryId, l.guid),
+                    path = MediaHelper.GetBunnyVideoUrl(l.libraryId, l.guid),
                     isFree = l.isFree,
                     courseId = l.courseId,
                     duration = l.duration ?? 0,
@@ -92,8 +95,8 @@ namespace LearningHorizon.Repositories
 
         public async Task<BunnyUploadToken> GetLessonAddToken(string lessonTitle)
         {
-            const string libraryId = "600159";
-            const string apiKey = "c93235e6-d853-4107-993e6ade1a6d-cd0c-4a5c";
+            var libraryId = _configuration["Bunny:libraryId"];
+            var apiKey = _configuration["Bunny:ApiKey"];
 
             // Step 1: Create the video on Bunny and get the guid
             var client = new HttpClient();

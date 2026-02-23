@@ -74,19 +74,5 @@ namespace LearningHorizon.Repositories
             return _context.Set<T>().Where(predicate).ToList();
         }
 
-        public string GetContentType(string path)
-        {
-            var provider = new FileExtensionContentTypeProvider();
-            if (!provider.TryGetContentType(path, out string contentType))
-            {
-                contentType = "application/octet-stream";
-            }
-            return contentType;
-        }
-
-        public string GetBunnyVideoUrl(int libraryId, string guid)
-        {
-            return $"https://iframe.mediadelivery.net/embed/${libraryId}/${guid}";
-        }
     }
 }

@@ -61,7 +61,7 @@ namespace LearningHorizon.Repositories
                     courseCreator = c.creator,
                     coursePrice = c.price,
                     coursePath = c.path,
-                    courseImagePath = c.imagePath,
+                    courseImagePath = $"{baseUrl}/Media/Images/CourseImages/{Path.GetFileName(c.imagePath)}",
                     courseDurationInSeconds = c.Lessons.Sum(l => l.duration ?? 0),
                     courseCategory = c.category != null ? c.category.title : "",
                     lessonsCount = c.Lessons.Count

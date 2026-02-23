@@ -9,7 +9,7 @@ namespace LearningHorizon.Data.Models
         public int id { get; set; }
         [Required]
         public string title { get; set; }
-        public string path { get; set; }
+        public string? path { get; set; }
         public bool isFree { get; set; }
         public bool isDeleted { get; set; } = false;
         public int? duration { get; set; }
