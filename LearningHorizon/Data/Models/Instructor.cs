@@ -11,5 +11,7 @@
         public string? facebookUrl { get; set; }
         public string? whatsappUrl { get; set; }
         public string? instgramUrl { get; set; }
+        public bool isDeveloper { get; set; } = false;
+        public string? tag { get; set; }
     }
 }

@@ -1431,7 +1431,9 @@ namespace LearningHorizon.Controllers
                 facebookUrl = x.facebookUrl,
                 whatsappUrl = x.whatsappUrl,
                 instgramUrl = x.instgramUrl,
-            }).OrderByDescending(x => x.id);
+                isDeveloper = x.isDeveloper,
+                tag = x.tag
+            }).OrderBy(x => x.id);
 
             return Ok(new { status = 200, data = instructors});
         }
@@ -1471,7 +1473,8 @@ namespace LearningHorizon.Controllers
                 imageUrl = imageUrl,
                 facebookUrl = dto.facebookUrl ?? "",
                 whatsappUrl = dto.whatsappUrl ?? "",
-                instgramUrl = dto.instgramUrl ?? ""
+                instgramUrl = dto.instgramUrl ?? "",
+                tag = dto.tag,
             };
 
             await _instructorRepository.AddAsync(instructor);
@@ -1496,7 +1499,8 @@ namespace LearningHorizon.Controllers
             if (dto.facebookUrl != "" && !dto.facebookUrl.IsNullOrEmpty()) instructor.facebookUrl = dto.facebookUrl;
             if (dto.whatsappUrl != "" && !dto.whatsappUrl.IsNullOrEmpty()) instructor.whatsappUrl = dto.whatsappUrl;
             if (dto.instgramUrl != "" && !dto.instgramUrl.IsNullOrEmpty()) instructor.instgramUrl = dto.instgramUrl;
-               
+            if (dto.tag != "" && !dto.tag.IsNullOrEmpty()) instructor.tag = dto.tag;
+
             if (dto.image != null)
             {
                 string imageUrl = "";

@@ -11,5 +11,6 @@
         public string? facebookUrl { get; set; }
         public string? whatsappUrl { get; set; }
         public string? instgramUrl { get; set; }
+        public string? tag { get; set; } = null;
     }
 }
