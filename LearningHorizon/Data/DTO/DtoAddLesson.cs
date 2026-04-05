@@ -17,6 +17,9 @@
     {
         public string? questionText { get; set; }
         public string? explanation { get; set; }
+        public string? quoteSubject { get; set; }
+
+        public string? quoteBody { get; set; }
         public IFormFile? image { get; set; }
         public List<DtoExerciseAnswer> answers { get; set; }
     }

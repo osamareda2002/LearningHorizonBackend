@@ -5,6 +5,7 @@ using LearningHorizon.Interfaces;
 using LearningHorizon.Services;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.IO;
 using static System.Net.WebRequestMethods;
@@ -75,7 +76,9 @@ namespace LearningHorizon.Repositories
                         id = ex.id,
                         questionText = ex.questionText,
                         explanation = ex.explanation,
-                        imageLink = $"{baseUrl}/Media/Images/LessonExercises/{Path.GetFileName(ex.imageLink)}",
+                        quoteSubject = ex.quoteSubject,
+                        quoteBody = ex.quoteBody,
+                        imageLink = ex.imageLink.IsNullOrEmpty() ? null : $"{baseUrl}/Media/Images/LessonExercises/{Path.GetFileName(ex.imageLink)}",
                         answers = ex.lessonExerciseAnswers.Select(ans => new DtoGetExerciseAnswer
                         {
                             id = ans.id,

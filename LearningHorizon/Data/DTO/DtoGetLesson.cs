@@ -21,6 +21,8 @@ namespace LearningHorizon.Data.DTO
         public int id { get; set; }
         public string? questionText { get; set; }
         public string? explanation { get; set; }
+        public string? quoteSubject { get; set; } = string.Empty;
+        public string? quoteBody { get; set; } = string.Empty;
         public string? imageLink { get; set; }
         public List<DtoGetExerciseAnswer> answers { get; set; }
     }
