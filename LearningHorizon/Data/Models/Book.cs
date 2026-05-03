@@ -15,7 +15,13 @@ namespace LearningHorizon.Data.Models
         public string bookPath { get; set; }
         public string? description { get; set; }
         public bool isDeleted { get; set; }
+
+        public int? categoryId { get; set; }
+
         public DateTime? createdAt { get; set; }
         public DateTime? deletedAt { get; set; }
+
+        // Navigation properties
+        public virtual CourseCategory category { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace LearningHorizon.Repositories
             _context = context;
         }
 
-        public async Task<List<DtoGetBook>> GetAllBooks()
+        public async Task<List<DtoGetBook>> GetAllBooks(string baseUrl)
         {
             var books = await _context.Books.Where(x => x.isDeleted != true).AsNoTracking()
                 .Select(x => new DtoGetBook
@@ -24,13 +24,15 @@ namespace LearningHorizon.Repositories
                     id = x.id,
                     title = x.title,
                     description = x.description ?? "",
-                    posterLink = x.posterPath
+                    posterLink = $"{baseUrl}/Media/Images/Books Cover Images/{Path.GetFileName(x.posterPath)}",
+                    fileLink = $"{baseUrl}/Media/Books/{Path.GetFileName(x.bookPath)}",
+                    categoryId = (int)x.categoryId,
                 }).ToListAsync();
 
             return books;
         }
 
-        public async Task<DtoGetBook> GetBookById(int id)
+        public async Task<DtoGetBook> GetBookById(int id,string baseUrl)
         {
             var bookData = await _context.Books.FindAsync(id);
             if (bookData == null)
@@ -41,6 +43,9 @@ namespace LearningHorizon.Repositories
                 id = bookData.id,
                 title = bookData.title,
                 description = bookData.description ?? "",
+                posterLink = $"{baseUrl}/Media/Images/Books Cover Images/{Path.GetFileName(bookData.posterPath)}",
+                fileLink = $"{baseUrl}/Media/Books/{Path.GetFileName(bookData.bookPath)}",
+                categoryId = (int)bookData.categoryId,
             };
             return book;
         }

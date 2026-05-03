@@ -220,123 +220,46 @@ namespace LearningHorizon.Controllers
                 description = dtoBook.description,
                 bookPath = bookFilePath,
                 posterPath = coverFilePath,
+                categoryId = dtoBook.categoryId,
                 createdAt = DateTime.UtcNow
             };
 
             await _bookRepository.AddAsync(book);
-            var result = await _bookRepository.GetBookById(book.id);
+            var result = await _bookRepository.GetBookById(book.id,baseUrl);
             return Ok(result);
         }
 
+        [HttpGet]
+        [Route("GetBooksByCategory")]
+        public async Task<IActionResult> GetBooksByCategory(int categoryId)
+        {
+            var books = await _bookRepository.GetAllBooks(baseUrl);
+            books = books.Where(x => x.categoryId == categoryId).ToList();
+            return Ok(books);
+        }
 
         [HttpGet]
         [Route("GetAllBooks")]
         public async Task<IActionResult> GetAllBooks()
         {
-            var books = await _bookRepository.GetAllBooks();
+            var books = await _bookRepository.GetAllBooks(baseUrl);
             return Ok(books);
         }
 
-        [HttpGet]
-        [Route("GetBookCoverImage")]
-        public async Task<IActionResult> GetBookCoverImage(int id)
+        [HttpDelete("DeleteBook")]
+        public async Task<IActionResult> DeleteBook(int bookId)
         {
-            var book = await _bookRepository.GetByIdAsync(id);
-            if (book == null || string.IsNullOrEmpty(book.posterPath))
-                return NotFound("No book with this id or no file associated with it");
-
-            var filePath = book.posterPath;
-            if (!System.IO.File.Exists(filePath))
-                return NotFound("File not found");
-
-            var contentType = MediaHelper.GetContentType(filePath);
-            var fileInfo = new FileInfo(filePath);
-            var fileLength = fileInfo.Length;
-
-            var request = Request;
-            var response = Response;
-
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            if (request.Headers.ContainsKey("Range"))
+            var book = _bookRepository.FindBy(x => x.id == bookId).FirstOrDefault();
+            if(book != null)
             {
-                var rangeHeader = request.Headers["Range"].ToString();
-                var range = rangeHeader.Replace("bytes=", "").Split('-');
-
-                long start = string.IsNullOrEmpty(range[0]) ? 0 : Convert.ToInt64(range[0]);
-                long end = string.IsNullOrEmpty(range[1]) ? fileLength - 1 : Convert.ToInt64(range[1]);
-
-                if (start > end || start < 0 || end >= fileLength)
-                {
-                    stream.Dispose(); // Dispose early on invalid range
-                    return BadRequest("Invalid Range");
-                }
-
-                stream.Seek(start, SeekOrigin.Begin);
-                long length = end - start + 1;
-
-                response.StatusCode = 206; // Partial Content
-                response.ContentLength = length;
-                response.Headers.Add("Content-Range", $"bytes {start}-{end}/{fileLength}");
-
-                return File(stream, contentType, enableRangeProcessing: true);
+                book.isDeleted = true;
+                _bookRepository.Update(book);
+                await _bookRepository.SaveChangesAsync();
             }
 
-            // No Range header - return full content
-            response.ContentLength = fileLength;
-            return File(stream, contentType, enableRangeProcessing: true);
+            var books = await _bookRepository.GetAllBooks(baseUrl);
+            return Ok(books);
         }
-
-        [HttpGet]
-        [Route("GetBookFile")]
-        public async Task<IActionResult> GetBookFile(int id)
-        {
-            var book = await _bookRepository.GetByIdAsync(id);
-            if (book == null || string.IsNullOrEmpty(book.bookPath))
-                return NotFound("No book with this id or no file associated with it");
-
-            var filePath = book.bookPath;
-            if (!System.IO.File.Exists(filePath))
-                return NotFound("File not found");
-
-            var contentType = MediaHelper.GetContentType(filePath);
-            var fileInfo = new FileInfo(filePath);
-            var fileLength = fileInfo.Length;
-
-            var request = Request;
-            var response = Response;
-
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            if (request.Headers.ContainsKey("Range"))
-            {
-                var rangeHeader = request.Headers["Range"].ToString();
-                var range = rangeHeader.Replace("bytes=", "").Split('-');
-
-                long start = string.IsNullOrEmpty(range[0]) ? 0 : Convert.ToInt64(range[0]);
-                long end = string.IsNullOrEmpty(range[1]) ? fileLength - 1 : Convert.ToInt64(range[1]);
-
-                if (start > end || start < 0 || end >= fileLength)
-                {
-                    stream.Dispose(); // Dispose early on invalid range
-                    return BadRequest("Invalid Range");
-                }
-
-                stream.Seek(start, SeekOrigin.Begin);
-                long length = end - start + 1;
-
-                response.StatusCode = 206; // Partial Content
-                response.ContentLength = length;
-                response.Headers.Add("Content-Range", $"bytes {start}-{end}/{fileLength}");
-
-                return File(stream, contentType, enableRangeProcessing: true);
-            }
-
-            // No Range header - return full content
-            response.ContentLength = fileLength;
-            return File(stream, contentType, enableRangeProcessing: true);
-        }
-
         #endregion
 
 

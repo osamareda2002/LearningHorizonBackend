@@ -4,6 +4,7 @@
     {
         public string title { get; set; }
         public string? description { get; set; }
+        public int? categoryId { get; set; }
         public IFormFile? coverImage { get; set; }
         public IFormFile bookFile { get; set; }
     }

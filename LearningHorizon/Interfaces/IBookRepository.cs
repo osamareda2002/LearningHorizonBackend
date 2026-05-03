@@ -5,7 +5,7 @@ namespace LearningHorizon.Interfaces
 {
     public interface IBookRepository : IGenericRepository<Book>
     {
-        Task<List<DtoGetBook>> GetAllBooks();
-        Task<DtoGetBook> GetBookById(int id);
+        Task<List<DtoGetBook>> GetAllBooks(string baseUrl);
+        Task<DtoGetBook> GetBookById(int id, string baseUrl);
     }
 }
